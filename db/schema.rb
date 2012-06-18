@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120424141921) do
+ActiveRecord::Schema.define(:version => 20120618193721) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.integer  "resource_id",   :null => false
@@ -142,6 +142,7 @@ ActiveRecord::Schema.define(:version => 20120424141921) do
     t.integer  "stylesheet_file_size"
     t.datetime "stylesheet_updated_at"
     t.string   "short_name"
+    t.integer  "repository_id"
   end
 
   add_index "organisations", ["dcc_edition_id"], :name => "index_organisations_on_dcc_edition_id"
@@ -229,6 +230,18 @@ ActiveRecord::Schema.define(:version => 20120424141921) do
 
   add_index "questions", ["dependency_question_id"], :name => "index_questions_on_dependency_question_id"
   add_index "questions", ["edition_id"], :name => "index_questions_on_edition_id"
+
+  create_table "repositories", :force => true do |t|
+    t.integer  "organisation_id"
+    t.string   "name"
+    t.string   "collection_iri"
+    t.string   "username"
+    t.string   "password"
+    t.string   "administrator_name"
+    t.string   "administrator_email"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "roles", :force => true do |t|
     t.integer  "role_flags"

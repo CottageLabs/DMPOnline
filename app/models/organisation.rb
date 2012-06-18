@@ -6,6 +6,7 @@ class Organisation < ActiveRecord::Base
   has_many :roles
   has_many :templates
   has_one :dcc_template, :foreign_key => "dcc_template_id", :class_name => "Template"
+  has_one :repository
   
   has_attached_file :logo, :styles => {home: '320x92>', template: '256x72>', thumb: '48x48>'}
   has_attached_file :stylesheet

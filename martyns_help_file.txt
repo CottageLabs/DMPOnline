@@ -1,0 +1,48 @@
+Development Log
+
+1. Download DMPOnline3 from https://github.com/CottageLabs/DMPOnline
+2. Ensure MySQL is installed
+3. Create config/database.yml file with suitable content, using mysql2 adapter, e.g.:
+	development:
+	  adapter: mysql2
+	  database: dmponline3_development_2
+	  username: mysql
+	  password: mysql
+4. Update config/initializers/secret_token.rb
+5. Run rake db:setup
+6. Run rails server
+7. Check site loads OK
+8. Create a new Repository model:
+	rails generate model Repository organisation_id:integer name:string collection_iri:string username:string password:string administrator_name:string administrator_email:string 
+9A. Update the migration:
+
+	class CreateRepositories < ActiveRecord::Migration
+	  def change
+	    create_table :repositories do |t|
+	      t.integer :organisation_id
+	      t.string :name
+	      t.string :collection_iri
+	      t.string :username
+	      t.string :password
+	      t.string :administrator_name
+	      t.string :administrator_email
+
+	      t.timestamps
+	    end
+    
+	    add_column :organisations, :repository_id, :integer
+	  end
+	end
+
+9B. Update the Organisation model
+  has_one :repository
+
+9C. Update the Repository model
+	class Repository < ActiveRecord::Base
+	  belongs_to :organisation
+	  attr_accessible :name, :collection_iri, :username, :password, :administrator_name, :administrator_email
+	end
+
+10. Check everything still works!
+11. Add the admin interface for the new Repository model:
+	rails generate active_admin:resource Repository

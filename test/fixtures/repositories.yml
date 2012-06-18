@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/Fixtures.html
+
+one:
+  organisation_id: 1
+  name: MyString
+  collection_iri: MyString
+  username: MyString
+  password: MyString
+  administrator_name: MyString
+  administrator_email: MyString
+
+two:
+  organisation_id: 2
+  name: MyString
+  collection_iri: MyString
+  username: MyString
+  password: MyString
+  administrator_name: MyString
+  administrator_email: MyString
