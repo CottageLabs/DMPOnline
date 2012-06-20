@@ -54,9 +54,12 @@ group :test do
   gem 'turn', :require => false
 end
 
+gem 'email_validator' #Add email validation gem
+
 gem "paper_trail", "2.6.0"
 gem "exception_notification", "2.5.2"
 gem 'letter_opener', :group => :development
 
 gem 'therubyracer', :platforms => :ruby 
 gem "win32-open3-19", "~> 0.0.1", :platforms => [:mswin, :mingw]
+

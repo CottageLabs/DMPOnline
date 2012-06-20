@@ -200,7 +200,18 @@ class User < ActiveRecord::Base
         .where('roles.user_id' => self.id)
         .all
     end
-  end      
+  end    
+  
+  def repositories
+    if is_dccadmin?
+      Repository.scoped
+    else
+      Repository.joins(:roles)
+        .where('roles.role_flags' => 2**ROLES.index('orgadmin'))
+        .where('roles.user_id' => self.id)
+        .readonly(false)
+    end
+  end  
 
   private
 

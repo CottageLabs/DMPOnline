@@ -12,6 +12,5 @@ class CreateRepositories < ActiveRecord::Migration
       t.timestamps
     end
     
-    add_column :organisations, :repository_id, :integer
   end
 end

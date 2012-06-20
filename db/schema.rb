@@ -142,7 +142,6 @@ ActiveRecord::Schema.define(:version => 20120618193721) do
     t.integer  "stylesheet_file_size"
     t.datetime "stylesheet_updated_at"
     t.string   "short_name"
-    t.integer  "repository_id"
   end
 
   add_index "organisations", ["dcc_edition_id"], :name => "index_organisations_on_dcc_edition_id"

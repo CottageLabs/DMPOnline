@@ -31,6 +31,7 @@ ActiveAdmin.register Organisation do
     column :url do |organisation|
       link_to organisation.url, organisation.url
     end
+    column :repository
     default_actions
   end
   
@@ -46,6 +47,7 @@ ActiveAdmin.register Organisation do
       row :logo_file_size
       row :stylesheet_file_name
       row :domain
+      row :repository
     end
     # active_admin_comments
   end
