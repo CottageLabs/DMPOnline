@@ -1,6 +1,10 @@
 Development Log
 
-1. Download DMPOnline3 from https://github.com/CottageLabs/DMPOnline
+1.	Download DMPOnline3 from https://github.com/CottageLabs/DMPOnline
+	Download wkhtmltopdf from http://code.google.com/p/wkhtmltopdf/
+	Copy to computer, set path in config/initializers/wicked_pdf.rb, e.g.
+	/Applications/wkhtmltopdf.app/Contents/MacOS/wkhtmltopdf
+	
 2. Ensure MySQL is installed
 3. Create config/database.yml file with suitable content, using mysql2 adapter, e.g.:
 	development:

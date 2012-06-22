@@ -6,12 +6,7 @@ class Repository < ActiveRecord::Base
   validates :organisation_id, :uniqueness => true
   validates :organisation, :presence => true
   validates :administrator_email, :email => true
-  
-  
-#  validates :password, :confirmation => true
-
-  
-#  
-  
+  validates :collection_iri, :url => true
+    
   
 end

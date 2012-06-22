@@ -79,13 +79,20 @@
 
 
     .output-format
-      %label{for: "format"}
-        = t('dmp.output_format')
-        = select_tag 'format', '<option value="pdf">PDF</option><option value="html">HTML</option><option value="csv">CSV</option><option value="txt">TXT</option><option value="xml">XML</option><option value="xlsx">XLSX</option><option value="docx">DOCX</option><option value="rtf">RTF</option>'.html_safe
-    
-      .actions
-        = f.submit name: "doc[inline]", value: t('dmp.open')
-        = f.submit name: "doc[attachment]", value: t('dmp.download')
+      .attributes_table
+        %table
+          %tbody
+            %tr
+              %th= t('dmp.output_format')
+              %td= select_tag 'format', '<option value="pdf">PDF</option><option value="html">HTML</option><option value="csv">CSV</option><option value="txt">TXT</option><option value="xml">XML</option><option value="xlsx">XLSX</option><option value="docx">DOCX</option><option value="rtf">RTF</option>'.html_safe
+            %tr
+              %th= t('repository.export_to_repository')
+              %td= check_box_tag "export_to_repository", 1, true
+            %tr
+              %th
+              %td
+                = f.submit name: "doc[inline]", value: t('dmp.open')
+                = f.submit name: "doc[attachment]", value: t('dmp.download')
 
     - unless @phase_edition_instance.template_instance.template.constraint_text.blank?
       .constraint= @phase_edition_instance.template_instance.template.constraint_text

@@ -7,5 +7,5 @@ WickedPdf.config = {
 if !!RUBY_PLATFORM['mingw32']
   WickedPdf.config[:exe_path] = '/progra~1/wkhtmltopdf/wkhtmltopdf.exe'
 else
-  WickedPdf.config[:wkhtmltopdf] = '/usr/local/bin/wkhtmltopdf'  
+  WickedPdf.config[:wkhtmltopdf] = '/Applications/wkhtmltopdf.app/Contents/MacOS/wkhtmltopdf'  
 end

@@ -55,6 +55,7 @@ group :test do
 end
 
 gem 'email_validator' #Add email validation gem
+gem "validate_url" #Add URL validation
 
 gem "paper_trail", "2.6.0"
 gem "exception_notification", "2.5.2"
