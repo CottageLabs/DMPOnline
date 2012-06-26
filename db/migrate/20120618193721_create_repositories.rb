@@ -1,7 +1,7 @@
 class CreateRepositories < ActiveRecord::Migration
   def change
     create_table :repositories do |t|
-      t.integer :organisation_id
+      t.references :organisation
       t.string :name
       t.string :collection_iri
       t.string :username
@@ -11,6 +11,9 @@ class CreateRepositories < ActiveRecord::Migration
 
       t.timestamps
     end
+    
+    add_index :repositories, :organisation_id, :unique => true
+    add_index :repositories, :name, :unique => true
     
   end
 end

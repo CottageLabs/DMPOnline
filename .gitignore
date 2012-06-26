@@ -1,3 +1,7 @@
 tmp/
 log/
 config/database.yml
+repository/
+er-diagram.mwb
+er-diagram.mwb.bak
+.DS_Store

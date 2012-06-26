@@ -1,3 +1,4 @@
 en:
   repository:
-    export_to_repository: "Store copy in repository"
+    repository_log: "Repository Log"
+    deposit: "Deposit in "

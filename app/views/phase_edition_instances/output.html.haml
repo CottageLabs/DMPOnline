@@ -3,6 +3,13 @@
 .output
   = form_for @phase_edition_instance, :url => export_plan_layer_path(@plan, @phase_edition_instance), :method => :post do |f|
     = hidden_field_tag "doc[output_all]", @output_all ? "1" : ""
+    .ignore-this-bit
+      IGNORE THIS BIT @output_all =
+      = @output_all
+      = debug @plan
+      = debug @phase_edition_instance
+      = debug @repository
+
     - unless @phase_edition_instance.template_instance.template.constraint_text.blank?
       .constraint= @phase_edition_instance.template_instance.template.constraint_text
     .panel
@@ -85,14 +92,17 @@
             %tr
               %th= t('dmp.output_format')
               %td= select_tag 'format', '<option value="pdf">PDF</option><option value="html">HTML</option><option value="csv">CSV</option><option value="txt">TXT</option><option value="xml">XML</option><option value="xlsx">XLSX</option><option value="docx">DOCX</option><option value="rtf">RTF</option>'.html_safe
-            %tr
-              %th= t('repository.export_to_repository')
-              %td= check_box_tag "export_to_repository", 1, true
+            - if @repository
+              %tr
+                %th= t('repository.repository_log')
+                %td= @repository.show_log(@phase_edition_instance)
             %tr
               %th
               %td
                 = f.submit name: "doc[inline]", value: t('dmp.open')
                 = f.submit name: "doc[attachment]", value: t('dmp.download')
+                - if @repository
+                  = f.submit name: "doc[deposit]", value: (t('repository.deposit') + @repository.name)
 
     - unless @phase_edition_instance.template_instance.template.constraint_text.blank?
       .constraint= @phase_edition_instance.template_instance.template.constraint_text

@@ -1,4 +1,6 @@
 # encoding: utf-8
+require 'bagit'
+
 class PhaseEditionInstancesController < ApplicationController
   respond_to :html
   before_filter :authenticate_user!
@@ -72,11 +74,15 @@ class PhaseEditionInstancesController < ApplicationController
 
   def output
     @eqs = @phase_edition_instance.report_questions
+    @repository = @phase_edition_instance.template_instance.template.organisation.repository
+    
     @output_all = false
   end
 
   def output_all
     @eqs = @phase_edition_instance.template_instance.plan.report_questions
+    @repository = @phase_edition_instance.template_instance.template.organisation.repository
+    
     @output_all = true
 
     render :output
@@ -89,6 +95,9 @@ class PhaseEditionInstancesController < ApplicationController
       redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
       return
     end
+    
+    @repository = @phase_edition_instance.template_instance.template.organisation.repository
+    
     @doc = params[:doc]
     pos = @doc[:position] || {}
     unless pos.is_a?(HashWithIndifferentAccess) 
@@ -144,6 +153,77 @@ class PhaseEditionInstancesController < ApplicationController
     else
       @pei = @phase_edition_instance
     end
+    
+    unless @doc[:deposit].blank?
+      xml_filename = "#{@plan.project.parameterize}.xml";
+      pdf_filename = "#{@plan.project.parameterize}.pdf"
+
+      #Create a queue record
+      queue_entry = RepositoryQueue.create!(
+        :repository_id=>@repository.id, 
+        :plan_id => @plan.id,
+        :phase_edition_instance_id => @phase_edition_instance.id,
+        :repository_queue_status_id => RepositoryQueueStatus.Initialising_id,
+        :user_id => current_user.id,
+        :submitted_date => DateTime.now,
+        :status_date => DateTime.now)
+        
+      #Create the temporary file area
+      bagit_path = REPOSITORY_PATH.join('queue', queue_entry.id.to_s)
+      FileUtils.mkdir_p(bagit_path)
+      
+      # make a new bag at base_path
+      bag = BagIt::Bag.new(bagit_path)
+
+        
+      #Export pdf
+      pdf = render_to_string :pdf => pdf_filename,
+        template: 'phase_edition_instances/export.html',
+        margin: {:top => '1.7cm'},
+        orientation: @doc[:orientation], 
+        default_header: false,
+        header: {right: '[page]/[topage]', left: @doc[:page_header_text], spacing: 3, line: true},
+        footer: {center: @doc[:page_footer_text], spacing: 1.2, line: true}
+      bag.add_file(pdf_filename) do |io|
+        io.binmode #Need binary mode for writing PDFs
+        io << pdf
+      end
+            
+      
+      #Export xml
+      xml = render_to_string :template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml] 
+      bag.add_file(xml_filename) do |file|
+        file << xml
+      end
+      
+      # make a new file
+      bag.add_file("hello.txt") do |io|
+        io.puts "Hello World!"
+      end
+
+      # generate the manifest and tagmanifest files
+      bag.manifest!
+      
+      
+      #Now zip it all up
+      temp = Tempfile.new(REPOSITORY_PATH.join('queue',"#{queue_entry.id}.zip").to_s)
+      Zip::ZipOutputStream.open(temp.path) do |z|
+          bagit_path.entries.each do |file|
+              if (file.file?)
+                z.put_next_entry(file)
+                z.print IO.read(file)                
+              end
+          end
+        end
+#        send_file t.path, :type => 'application/zip', :disposition => 'attachment', :filename => "#{@folder.name}.zip"
+#        temp.delete() #To remove the tempfile
+      
+  
+      redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
+      return        
+      
+    end
+
     
     respond_to do |format|
       format.html { render :export, layout: false }

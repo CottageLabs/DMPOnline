@@ -48,6 +48,8 @@ GEM
     arel (2.2.3)
     awesome_nested_set (2.0.2)
       activerecord (>= 3.0.0)
+    bagit (0.2.0)
+      validatable (~> 1.6)
     bcrypt-ruby (3.0.1)
     bourbon (2.1.0)
       sass (>= 3.1)
@@ -258,6 +260,7 @@ GEM
       multi_json (>= 1.0.2)
     uuid (2.3.5)
       macaddr (~> 1.0)
+    validatable (1.6.7)
     validate_url (0.2.0)
       activemodel (>= 3.0.0)
     warden (1.0.6)
@@ -271,6 +274,7 @@ DEPENDENCIES
   activeadmin (= 0.4.2)
   acts_as_list (= 0.1.4)
   awesome_nested_set (= 2.0.2)
+  bagit
   cancan (= 1.6.7)
   cocoon (= 1.0.15)
   coffee-rails (~> 3.1.0)
@@ -303,6 +307,7 @@ DEPENDENCIES
   tinymce-rails (= 3.4.8)
   turn
   uglifier
+  validatable
   validate_url
   wicked_pdf (= 0.7.7)
   win32-open3-19 (~> 0.0.1)
