@@ -1,6 +1,5 @@
 class Repository < ActiveRecord::Base
 
-  @@config = {:ignore=> "this should be removed"}
   cattr_accessor :config
     
   belongs_to :organisation
@@ -18,5 +17,6 @@ class Repository < ActiveRecord::Base
     "this is the log for project: #{phase_edition_instance.template_instance.plan.project}"
   end
   
+
 
 end

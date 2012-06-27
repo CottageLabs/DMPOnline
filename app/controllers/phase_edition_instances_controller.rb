@@ -1,5 +1,4 @@
 # encoding: utf-8
-require 'bagit'
 
 class PhaseEditionInstancesController < ApplicationController
   respond_to :html
@@ -155,6 +154,32 @@ class PhaseEditionInstancesController < ApplicationController
     end
     
     unless @doc[:deposit].blank?
+      files = []
+      files << {:filename => "#{@plan.project.parameterize}.pdf",
+        :binary => true,
+        :data => render_to_string(:pdf => "#{@plan.project.parameterize}.pdf",
+          template: 'phase_edition_instances/export.html',
+          margin: {:top => '1.7cm'},
+          orientation: 'portrait', 
+          default_header: false,
+          header: {right: '[page]/[topage]', left: @doc[:page_header_text], spacing: 3, line: true},
+          footer: {center: @doc[:page_footer_text], spacing: 1.2, line: true})
+      }
+      files << {:filename => "#{@plan.project.parameterize}.xml",
+        :binary => false,
+        :data => render_to_string(:template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml]) 
+      }
+      files << {:filename => "metadata.rdf",
+        :binary => false,
+        :data => "TO BE COMPLETED"
+      }
+
+      RepositoryQueue.enqueue(@repository, @plan, @phase_edition_instance, current_user, files)
+  
+      redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
+      return
+      
+=begin  
       xml_filename = "#{@plan.project.parameterize}.xml";
       pdf_filename = "#{@plan.project.parameterize}.pdf"
 
@@ -192,35 +217,31 @@ class PhaseEditionInstancesController < ApplicationController
       
       #Export xml
       xml = render_to_string :template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml] 
-      bag.add_file(xml_filename) do |file|
-        file << xml
+      bag.add_file(xml_filename) do |io|
+        io << xml
       end
       
-      # make a new file
-      bag.add_file("hello.txt") do |io|
-        io.puts "Hello World!"
-      end
 
       # generate the manifest and tagmanifest files
-      bag.manifest!
-      
+      bag.manifest!      
       
       #Now zip it all up
-      temp = Tempfile.new(REPOSITORY_PATH.join('queue',"#{queue_entry.id}.zip").to_s)
-      Zip::ZipOutputStream.open(temp.path) do |z|
-          bagit_path.entries.each do |file|
-              if (file.file?)
-                z.put_next_entry(file)
-                z.print IO.read(file)                
-              end
-          end
-        end
-#        send_file t.path, :type => 'application/zip', :disposition => 'attachment', :filename => "#{@folder.name}.zip"
-#        temp.delete() #To remove the tempfile
+      Zip::ZipFile.open(REPOSITORY_PATH.join('queue',"#{queue_entry.id}.zip").to_s, Zip::ZipFile::CREATE) do |zipfile|
+        add_directory_to_zipfile(bagit_path, bagit_path, zipfile)
+      end
+      
+      #Remove the old bagit folder
+      FileUtils.rm_rf bagit_path
+      
+      #Update queue entry to pending
+      queue_entry.repository_queue_status_id = RepositoryQueueStatus.Pending_id
+      queue_entry.status_date = DateTime.now
+      queue_entry.save!
+  
+=end    
       
   
-      redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
-      return        
+             
       
     end
 
@@ -265,5 +286,8 @@ class PhaseEditionInstancesController < ApplicationController
 
     end
   end
-
+  
+  
+  
+  
 end
