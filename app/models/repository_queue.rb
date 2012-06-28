@@ -62,6 +62,21 @@ class RepositoryQueue < ActiveRecord::Base
     return queue_entry
   end
   
+  
+  def self.process
+    logger.info "Processing the repository queue."
+    entries = RepositoryQueue.all(
+      :conditions=> {:repository_queue_status_id=>RepositoryQueueStatus.Pending_id},
+      :order=>"submitted_date asc")
+    logger.info "There are #{entries.count} item(s) in the queue to process"
+    entries.each do |entry|
+      logger.info "Processing #{entry.id}"
+      
+    end
+    
+  end
+  
+  
   #Helper function
   private
   def self.add_directory_to_zipfile(directory, base_directory, zipfile)          

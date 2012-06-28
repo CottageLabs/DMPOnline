@@ -5,3 +5,5 @@ repository/
 er-diagram.mwb
 er-diagram.mwb.bak
 .DS_Store
+config/deploy.rb
+Capfile
