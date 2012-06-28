@@ -35,35 +35,13 @@ class RepositoryQueue < ActiveRecord::Base
     # make a new bag at base_path
     bag = BagIt::Bag.new(bagit_path)
     
+    #Export the files to the bag
     files.each do |file|
       bag.add_file(file[:filename]) do |io|
         io.binmode if (file[:binary])
         io << file[:data]
       end
     end
-      
-=begin      
-    #Export pdf
-    pdf = PhaseEditionInstancesController.new.render_to_string :pdf => pdf_filename,
-      template: 'phase_edition_instances/export.html',
-      margin: {:top => '1.7cm'},
-      orientation: 'portrait', 
-      default_header: false,
-      header: {right: '[page]/[topage]', left: page_header_text, spacing: 3, line: true},
-      footer: {center: page_footer_text, spacing: 1.2, line: true}
-    bag.add_file(pdf_filename) do |io|
-      io.binmode #Need binary mode for writing PDFs
-      io << pdf
-    end
-          
-    
-    #Export xml
-    xml = PhaseEditionInstancesController.new.render_to_string :template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml] 
-    bag.add_file(xml_filename) do |io|
-      io << xml
-    end
-=end   
-
 
     # generate the manifest and tagmanifest files
     bag.manifest!      
@@ -84,6 +62,8 @@ class RepositoryQueue < ActiveRecord::Base
     return queue_entry
   end
   
+  #Helper function
+  private
   def self.add_directory_to_zipfile(directory, base_directory, zipfile)          
     directory.children(true).each do |entry|
       relative_entry = entry.relative_path_from(base_directory)

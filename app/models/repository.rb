@@ -14,7 +14,14 @@ class Repository < ActiveRecord::Base
   validates :collection_iri, :url => true
 
   def show_log(phase_edition_instance)
-    "this is the log for project: #{phase_edition_instance.template_instance.plan.project}"
+    return {:project => phase_edition_instance.template_instance.plan.project,
+      :entries => RepositoryQueue.all(
+        :conditions=> {:phase_edition_instance_id=>phase_edition_instance.id},
+        :limit => 10, 
+        :order=>"submitted_date desc", 
+        :select=>"id, submitted_date, repository_queue_status_id, log", 
+        :include=>[:repository_queue_status])
+      }
   end
   
 

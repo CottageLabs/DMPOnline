@@ -3,13 +3,6 @@
 .output
   = form_for @phase_edition_instance, :url => export_plan_layer_path(@plan, @phase_edition_instance), :method => :post do |f|
     = hidden_field_tag "doc[output_all]", @output_all ? "1" : ""
-    .ignore-this-bit
-      IGNORE THIS BIT @output_all =
-      = @output_all
-      = debug @plan
-      = debug @phase_edition_instance
-      = debug @repository
-
     - unless @phase_edition_instance.template_instance.template.constraint_text.blank?
       .constraint= @phase_edition_instance.template_instance.template.constraint_text
     .panel
@@ -95,14 +88,14 @@
             - if @repository
               %tr
                 %th= t('repository.repository_log')
-                %td= @repository.show_log(@phase_edition_instance)
+                %td= render partial: 'repository_log', object: @repository.show_log(@phase_edition_instance)
             %tr
               %th
               %td
                 = f.submit name: "doc[inline]", value: t('dmp.open')
                 = f.submit name: "doc[attachment]", value: t('dmp.download')
                 - if @repository
-                  = f.submit name: "doc[deposit]", value: (t('repository.deposit') + @repository.name)
+                  = f.submit name: "doc[deposit]", value: (t('repository.deposit') + @repository.name), id: "doc_deposit"
 
     - unless @phase_edition_instance.template_instance.template.constraint_text.blank?
       .constraint= @phase_edition_instance.template_instance.template.constraint_text

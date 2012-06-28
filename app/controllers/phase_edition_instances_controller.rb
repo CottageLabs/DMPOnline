@@ -154,7 +154,11 @@ class PhaseEditionInstancesController < ApplicationController
     end
     
     unless @doc[:deposit].blank?
+
+      #Generate files for export (done in controller so can use templated views)
       files = []
+
+      #PDF
       files << {:filename => "#{@plan.project.parameterize}.pdf",
         :binary => true,
         :data => render_to_string(:pdf => "#{@plan.project.parameterize}.pdf",
@@ -165,84 +169,25 @@ class PhaseEditionInstancesController < ApplicationController
           header: {right: '[page]/[topage]', left: @doc[:page_header_text], spacing: 3, line: true},
           footer: {center: @doc[:page_footer_text], spacing: 1.2, line: true})
       }
+      
+      #XML
       files << {:filename => "#{@plan.project.parameterize}.xml",
         :binary => false,
         :data => render_to_string(:template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml]) 
       }
+      
+      #RDF (to be completed!)
       files << {:filename => "metadata.rdf",
         :binary => false,
         :data => "TO BE COMPLETED"
       }
 
+      #Now enqueue
       RepositoryQueue.enqueue(@repository, @plan, @phase_edition_instance, current_user, files)
   
+      #Redirect to export screen
       redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
       return
-      
-=begin  
-      xml_filename = "#{@plan.project.parameterize}.xml";
-      pdf_filename = "#{@plan.project.parameterize}.pdf"
-
-      #Create a queue record
-      queue_entry = RepositoryQueue.create!(
-        :repository_id=>@repository.id, 
-        :plan_id => @plan.id,
-        :phase_edition_instance_id => @phase_edition_instance.id,
-        :repository_queue_status_id => RepositoryQueueStatus.Initialising_id,
-        :user_id => current_user.id,
-        :submitted_date => DateTime.now,
-        :status_date => DateTime.now)
-        
-      #Create the temporary file area
-      bagit_path = REPOSITORY_PATH.join('queue', queue_entry.id.to_s)
-      FileUtils.mkdir_p(bagit_path)
-      
-      # make a new bag at base_path
-      bag = BagIt::Bag.new(bagit_path)
-
-        
-      #Export pdf
-      pdf = render_to_string :pdf => pdf_filename,
-        template: 'phase_edition_instances/export.html',
-        margin: {:top => '1.7cm'},
-        orientation: @doc[:orientation], 
-        default_header: false,
-        header: {right: '[page]/[topage]', left: @doc[:page_header_text], spacing: 3, line: true},
-        footer: {center: @doc[:page_footer_text], spacing: 1.2, line: true}
-      bag.add_file(pdf_filename) do |io|
-        io.binmode #Need binary mode for writing PDFs
-        io << pdf
-      end
-            
-      
-      #Export xml
-      xml = render_to_string :template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml] 
-      bag.add_file(xml_filename) do |io|
-        io << xml
-      end
-      
-
-      # generate the manifest and tagmanifest files
-      bag.manifest!      
-      
-      #Now zip it all up
-      Zip::ZipFile.open(REPOSITORY_PATH.join('queue',"#{queue_entry.id}.zip").to_s, Zip::ZipFile::CREATE) do |zipfile|
-        add_directory_to_zipfile(bagit_path, bagit_path, zipfile)
-      end
-      
-      #Remove the old bagit folder
-      FileUtils.rm_rf bagit_path
-      
-      #Update queue entry to pending
-      queue_entry.repository_queue_status_id = RepositoryQueueStatus.Pending_id
-      queue_entry.status_date = DateTime.now
-      queue_entry.save!
-  
-=end    
-      
-  
-             
-      
     end
 
     

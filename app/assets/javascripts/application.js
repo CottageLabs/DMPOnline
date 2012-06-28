@@ -17,3 +17,4 @@
 //= require conditionals
 //= require plans
 //= require output
+//= require repository

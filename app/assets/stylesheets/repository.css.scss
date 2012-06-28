@@ -1,0 +1,24 @@
+/* THESE ARE THE REPOSITORY STYLES */
+
+table.repository_log {
+	border: none;
+	width: 60%;
+}
+
+table.repository_log td {
+	border-bottom: none;
+}
+
+table.repository_log td.date {
+	width:170px;
+}
+
+table.repository_log td.status {
+	width:100px;
+}
+
+table.repository_log td.warning {
+	border: 1px dotted red;
+	background-color: #f99;
+	font-weight: bold;
+}
