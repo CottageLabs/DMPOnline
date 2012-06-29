@@ -44,7 +44,7 @@ gem "rubyXL", "1.2.5"
 # gem 'unicorn'
 
 # Deploy with Capistrano
-# gem 'capistrano'
+gem 'capistrano'
 
 # To use debugger
 # gem 'ruby-debug19', :require => 'ruby-debug'
@@ -67,3 +67,4 @@ gem "validate_url" #Add URL validation
 gem "validatable"
 gem "bagit"
 
+gem "thin" #used for production hosting
