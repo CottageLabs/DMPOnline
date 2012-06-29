@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>currentDocument</key>
-	<string>app/models/repository_queue.rb</string>
+	<string>config/environment.rb</string>
 	<key>documents</key>
 	<array>
 		<dict>
@@ -26,88 +26,76 @@
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>10</integer>
+				<integer>18</integer>
 				<key>line</key>
-				<integer>36</integer>
+				<integer>58</integer>
 			</dict>
 			<key>columnSelection</key>
 			<false/>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
-			<integer>12</integer>
+			<integer>13</integer>
 			<key>selectFrom</key>
 			<dict>
 				<key>column</key>
 				<integer>5</integer>
 				<key>line</key>
-				<integer>36</integer>
+				<integer>58</integer>
 			</dict>
 			<key>selectTo</key>
 			<dict>
 				<key>column</key>
-				<integer>12</integer>
+				<integer>18</integer>
 				<key>line</key>
-				<integer>36</integer>
+				<integer>58</integer>
 			</dict>
 		</dict>
-		<key>app/controllers/phase_edition_instances_controller.rb</key>
+		<key>app/views/phase_edition_instances/output.html.haml</key>
 		<dict>
 			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>7</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
+			<key>columnSelection</key>
+			<false/>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+			<key>selectFrom</key>
 			<dict>
 				<key>column</key>
 				<integer>2</integer>
 				<key>line</key>
-				<integer>290</integer>
+				<integer>0</integer>
 			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>237</integer>
+			<key>selectTo</key>
+			<dict>
+				<key>column</key>
+				<integer>7</integer>
+				<key>line</key>
+				<integer>0</integer>
+			</dict>
 		</dict>
-		<key>app/models/repository.rb</key>
+		<key>config.ru</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
 				<integer>0</integer>
 				<key>line</key>
-				<integer>19</integer>
+				<integer>4</integer>
 			</dict>
 			<key>firstVisibleColumn</key>
 			<integer>0</integer>
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>app/models/repository_queue.rb</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>5</integer>
-				<key>line</key>
-				<integer>84</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>44</integer>
-		</dict>
-		<key>app/models/repository_queue_status.rb</key>
-		<dict>
-			<key>caret</key>
-			<dict>
-				<key>column</key>
-				<integer>20</integer>
-				<key>line</key>
-				<integer>19</integer>
-			</dict>
-			<key>firstVisibleColumn</key>
-			<integer>0</integer>
-			<key>firstVisibleLine</key>
-			<integer>0</integer>
-		</dict>
-		<key>config/initializers/active_admin.rb</key>
+		<key>config/environment.rb</key>
 		<dict>
 			<key>caret</key>
 			<dict>
@@ -121,14 +109,14 @@
 			<key>firstVisibleLine</key>
 			<integer>0</integer>
 		</dict>
-		<key>config/initializers/repository.rb</key>
+		<key>config/environments/development.rb</key>
 		<dict>
 			<key>caret</key>
 			<dict>
 				<key>column</key>
-				<integer>8</integer>
+				<integer>55</integer>
 				<key>line</key>
-				<integer>3</integer>
+				<integer>42</integer>
 			</dict>
 			<key>columnSelection</key>
 			<false/>
@@ -139,32 +127,61 @@
 			<key>selectFrom</key>
 			<dict>
 				<key>column</key>
-				<integer>0</integer>
+				<integer>42</integer>
 				<key>line</key>
-				<integer>3</integer>
+				<integer>42</integer>
 			</dict>
 			<key>selectTo</key>
 			<dict>
 				<key>column</key>
-				<integer>15</integer>
+				<integer>55</integer>
 				<key>line</key>
-				<integer>3</integer>
+				<integer>42</integer>
+			</dict>
+		</dict>
+		<key>config/environments/production.rb</key>
+		<dict>
+			<key>caret</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>11</integer>
+			</dict>
+			<key>columnSelection</key>
+			<false/>
+			<key>firstVisibleColumn</key>
+			<integer>0</integer>
+			<key>firstVisibleLine</key>
+			<integer>0</integer>
+			<key>selectFrom</key>
+			<dict>
+				<key>column</key>
+				<integer>28</integer>
+				<key>line</key>
+				<integer>11</integer>
+			</dict>
+			<key>selectTo</key>
+			<dict>
+				<key>column</key>
+				<integer>0</integer>
+				<key>line</key>
+				<integer>11</integer>
 			</dict>
 		</dict>
 	</dict>
 	<key>openDocuments</key>
 	<array>
-		<string>app/controllers/phase_edition_instances_controller.rb</string>
+		<string>config/environments/production.rb</string>
+		<string>app/views/phase_edition_instances/output.html.haml</string>
+		<string>config/environments/development.rb</string>
 		<string>Gemfile</string>
-		<string>config/initializers/repository.rb</string>
-		<string>config/initializers/active_admin.rb</string>
-		<string>app/models/repository_queue_status.rb</string>
-		<string>app/models/repository.rb</string>
-		<string>app/models/repository_queue.rb</string>
+		<string>config.ru</string>
+		<string>config/environment.rb</string>
 	</array>
 	<key>showFileHierarchyDrawer</key>
 	<true/>
 	<key>windowFrame</key>
-	<string>{{129, 276}, {1268, 1062}}</string>
+	<string>{{875, 275}, {1268, 1062}}</string>
 </dict>
 </plist>
