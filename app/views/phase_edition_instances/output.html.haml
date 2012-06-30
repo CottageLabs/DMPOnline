@@ -31,6 +31,7 @@
                 %th= t('dmp.template_org')
                 %td
                   = "#{@phase_edition_instance.template_instance.template.organisation.organisation_type.title}:"
+                  - if (@phase_edition_instance.template_instance.template.organisation.organisation_type)
                   = @phase_edition_instance.template_instance.template.organisation.full_name
               %tr
                 %td= check_box_tag "doc[partners]", 1, true
