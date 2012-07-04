@@ -23,7 +23,25 @@ class RepositoryActionQueue < ActiveRecord::Base
     :repository_action_type_id, :repository_action_status_id, :repository_action_uri, :repository_action_receipt, :repository_action_log
   
   
-  def self.enqueue(repository_action_type_id, repository, plan, phase_edition_instance, user, files=[])   
+  #Cannot store URI in advance of action (except for delete), as then its not possible to create + update without queue running in between.
+  def self.enqueue(repository_action_type_id, repository, plan, phase_edition_instance, user, files=[])
+
+    #When repository_action_uri is null, this means, work it out on the fly
+    #When it is set (e.g. for deletes), use it. It is necessary to cache the URI for deletes in case the original
+    #record has been removed from the system
+    repository_action_uri = (repository_action_type_id == RepositoryActionType.Delete_id) ? "DELETE on EDIT-URI" : nil;
+        
+  #case repository_action_type_id
+  #  when RepositoryActionType.Create_id #POST Atom to COLLECTION URI
+  #    repository_action_uri = repository.sword_col_uri
+  #  when RepositoryActionType.Export_id #PUT Package to EM-URI
+  #    repository_action_uri = "PUT PACKAGE TO EM-URI"
+  #  when RepositoryActionType.Finalise_id #PUT Package to EM-URI + POST to EDIT-URI
+  #    repository_action_uri = "PUT PACKAGE TO EM-URI THEN POST TO EDIT-URI"
+  #when RepositoryActionType.Delete_id #DELETE on EDIT URI
+  #  repository_action_uri = "DELETE on EDIT-URI"
+
+
     #Create a queue record
     queue_entry = self.create!(
       :repository_id=>repository.id, 
@@ -32,8 +50,8 @@ class RepositoryActionQueue < ActiveRecord::Base
       :user_id => user.id,
       :repository_action_type_id => repository_action_type_id,
       :repository_action_status_id => RepositoryActionStatus.Initialising_id,
-      :repository_action_uri => "FIX ME",
-      :repository_action_log => "Initialised on #{DateTime.now}."
+      :repository_action_uri => repository_action_uri,
+      :repository_action_log => "Initialised on #{Time.now}."
     )
 
     #If there are files, put them in a bag and zip them up
@@ -82,46 +100,71 @@ class RepositoryActionQueue < ActiveRecord::Base
       :conditions=> {:repository_action_status_id=>RepositoryActionStatus.Pending_id},
       :order=>"created_at asc")
     logger.info "There are #{queue_items.count} item(s) in the queue to process"
+    
+    deposit_receipt = nil
+    
     queue_items.each do |item|
       logger.info "Processing #{item.id}"
-#      item.repository_action_status_id = RepositoryActionStatus.Processing_id;
+
+      #record item as being processed
+      item.repository_action_status_id = RepositoryActionStatus.Processing_id;
       item.save!
+      
+      
 
       #Now process the queue acording to the type
       case item.repository_action_type_id
+      
         #Creating a blank record (no files)
         when RepositoryActionType.Create_id
-          logger.info "Creating entry #{item.id} on #{item.repository.sword_col_uri}"
+          
+          # If the queue's repository_action_uri is set, use it, otherwise use the repository's sword_col_uri
+          item.repository_action_uri ||= item.repository.sword_col_uri
+          
+          logger.info "Creating entry in #{item.repository_action_uri}"
           
           logger.info "Getting connection to repository with on_behalf_of username"
-          connection = item.repository.get_connection(item.user.repository_username) #Need to store repository username in User table
-          collection = ::Atom::Collection.new(item.repository.sword_col_uri, connection)
+          connection = item.repository.get_connection(item.user.repository_username)
+          collection = ::Atom::Collection.new(item.repository_action_uri, connection)
           
           entry = Atom::Entry.new()
           entry.title = item.plan.project
-          entry.summary = "This entry was created during a test on #{Time.now}"
+          entry.summary = "DMP with template: #{item.phase_edition_instance.template_instance.template.name}"
           entry.updated = Time.now
           
-          slug = item.plan.project.parameterize
+          slug = "#{item.plan.project.parameterize}_#{Time.now.strftime("%FT%H-%M-%S")}"
 
           deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
+          
+          item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s
+          item.repository_action_log += "\nDeposited to #{item.repository_action_uri} on #{Time.now}."
+          item.phase_edition_instance.sword_edit_uri = deposit_receipt.entry.sword_edit_uri #QUESTION FOR RICHARD: Should this be entry_edit_uri ?
+          item.phase_edition_instance.sword_edit_media_uri = deposit_receipt.entry.edit_media_links().first.href #QUESTION FOR RICHARD: is it ok to take the first one ?
+          
+          item.phase_edition_instance.save!
 
           logger.info deposit_receipt
-                    
+
+          item.repository_action_status_id = RepositoryActionStatus.Success_id;
+          item.repository_action_log += "\nSuccess - at #{Time.now}."
+          
+        #Performing an export (with files)
+        when RepositoryActionType.Export_id
+          # If the queue's repository_action_uri is set, use it, otherwise use the repository's sword_col_uri
+          item.repository_action_uri ||= item.phase_edition_instance.sword_edit_media_uri
           
           
+
+        else
+          item.repository_action_status_id = RepositoryActionStatus.Failed_id;
+          item.repository_action_log += "\nFailed - no handler for requested action type #{item.repository_action_type} at #{Time.now}."
           
-#          logger.info "#{connection}"
-          
-          
-          
-        
 
       end
       
+      item.save!      
       
-      
-      return queue_items.count
+      return deposit_receipt
       
       
     end

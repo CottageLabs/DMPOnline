@@ -7,6 +7,7 @@ class PhaseEditionInstance < ActiveRecord::Base
   
   accepts_nested_attributes_for :answers, :allow_destroy => true
   attr_accessible :sword_edit_uri, :answers_attributes, :edition_id
+  attr_accessible :sword_edit_media_uri
 
   attr_accessor :active_check
 
