@@ -5,7 +5,7 @@ ActiveAdmin.register Repository do
 
   filter :name  
   filter :organisation
-  filter :collection_iri
+  filter :sword_col_uri
   
   controller.authorize_resource
   
@@ -13,7 +13,7 @@ ActiveAdmin.register Repository do
  index do
    column :name
    column :organisation
-   column "Collection IRI", :collection_iri
+   column "Collection IRI", :sword_col_uri
    column :username
    column :administrator_name
    column :administrator_email
@@ -24,10 +24,12 @@ ActiveAdmin.register Repository do
    attributes_table do
      row :name
      row :organisation
-     row :collection_iri
+     row :sword_col_uri
      row :username
      row :administrator_name
      row :administrator_email
+     
+     row :show_log
      
    end
  end

@@ -30,7 +30,8 @@
             .doc_header= t('dmp.project_stage', phase: @phase_edition_instance.edition.phase.phase)
           - if @doc[:template_org]
             .doc_header
-              = "#{@phase_edition_instance.template_instance.template.organisation.organisation_type.title}:"
+              - if (@phase_edition_instance.template_instance.template.organisation.organisation_type)
+                = "#{@phase_edition_instance.template_instance.template.organisation.organisation_type.title}:"
               = @phase_edition_instance.template_instance.template.organisation.full_name
           - if @doc[:partners]
             .pdf_header= t('dmp.lead_org', org: plan_display(@plan, :lead_org))

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120625161435) do
+ActiveRecord::Schema.define(:version => 20120630152839) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.integer  "resource_id",   :null => false
@@ -233,7 +233,7 @@ ActiveRecord::Schema.define(:version => 20120625161435) do
   create_table "repositories", :force => true do |t|
     t.integer  "organisation_id"
     t.string   "name"
-    t.string   "collection_iri"
+    t.string   "sword_col_uri"
     t.string   "username"
     t.string   "password"
     t.string   "administrator_name"
@@ -245,31 +245,41 @@ ActiveRecord::Schema.define(:version => 20120625161435) do
   add_index "repositories", ["name"], :name => "index_repositories_on_name", :unique => true
   add_index "repositories", ["organisation_id"], :name => "index_repositories_on_organisation_id", :unique => true
 
-  create_table "repository_queue_statuses", :force => true do |t|
+  create_table "repository_action_queues", :force => true do |t|
+    t.integer  "repository_id"
+    t.integer  "plan_id"
+    t.integer  "phase_edition_instance_id"
+    t.integer  "user_id"
+    t.integer  "repository_action_type_id"
+    t.integer  "repository_action_status_id"
+    t.string   "repository_action_uri"
+    t.string   "repository_action_receipt"
+    t.string   "repository_action_log"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "repository_action_queues", ["phase_edition_instance_id"], :name => "index_repository_action_queues_on_phase_edition_instance_id"
+  add_index "repository_action_queues", ["repository_action_status_id"], :name => "index_repository_action_queues_on_repository_action_status_id"
+  add_index "repository_action_queues", ["repository_id"], :name => "index_repository_action_queues_on_repository_id"
+
+  create_table "repository_action_statuses", :force => true do |t|
     t.string   "name"
     t.string   "description"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "repository_queue_statuses", ["name"], :name => "index_repository_queue_statuses_on_name", :unique => true
+  add_index "repository_action_statuses", ["name"], :name => "index_repository_action_statuses_on_name", :unique => true
 
-  create_table "repository_queues", :force => true do |t|
-    t.integer  "repository_id"
-    t.integer  "plan_id"
-    t.integer  "phase_edition_instance_id"
-    t.integer  "user_id"
-    t.datetime "submitted_date"
-    t.integer  "repository_queue_status_id"
-    t.datetime "status_date"
-    t.string   "log"
+  create_table "repository_action_types", :force => true do |t|
+    t.string   "name"
+    t.string   "description"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "repository_queues", ["repository_id"], :name => "index_repository_queues_on_repository_id"
-  add_index "repository_queues", ["repository_queue_status_id"], :name => "index_repository_queues_on_repository_queue_status_id"
-  add_index "repository_queues", ["submitted_date"], :name => "index_repository_queues_on_submitted_date"
+  add_index "repository_action_types", ["name"], :name => "index_repository_action_types_on_name", :unique => true
 
   create_table "roles", :force => true do |t|
     t.integer  "role_flags"

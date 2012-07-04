@@ -11,8 +11,8 @@ xml.dmp do
   if @doc[:project_status]
     xml.stage(t('dmp.project_stage', phase: @phase_edition_instance.edition.phase.phase))
   end
-  if @doc[:template_org]
-    xml.template_org("#{@phase_edition_instance.template_instance.template.organisation.organisation_type.title}: #{@phase_edition_instance.template_instance.template.organisation.full_name}")
+  if @doc[:template_org] 
+    xml.template_org("#{@phase_edition_instance.template_instance.template.organisation.organisation_type.nil? ? nil : @phase_edition_instance.template_instance.template.organisation.organisation_type.title}: #{@phase_edition_instance.template_instance.template.organisation.full_name}")
   end
   if @doc[:partners]
     xml.lead_org(plan_display(@plan, :lead_org))

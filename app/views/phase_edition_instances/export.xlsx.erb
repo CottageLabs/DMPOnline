@@ -13,7 +13,7 @@ if @doc[:project_status]
   r += 1
 end
 if @doc[:template_org]
-  ws.add_cell(r, 1, "#{@phase_edition_instance.template_instance.template.organisation.organisation_type.title}: #{@phase_edition_instance.template_instance.template.organisation.full_name}")
+  ws.add_cell(r, 1, "#{@phase_edition_instance.template_instance.template.organisation.organisation_type.nil? ? nil : @phase_edition_instance.template_instance.template.organisation.organisation_type.title}: #{@phase_edition_instance.template_instance.template.organisation.full_name}")
   r += 1
 end
 if @doc[:partners]

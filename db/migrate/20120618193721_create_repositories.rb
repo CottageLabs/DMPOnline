@@ -3,7 +3,7 @@ class CreateRepositories < ActiveRecord::Migration
     create_table :repositories do |t|
       t.references :organisation
       t.string :name
-      t.string :collection_iri
+      t.string :sword_col_uri
       t.string :username
       t.string :password
       t.string :administrator_name

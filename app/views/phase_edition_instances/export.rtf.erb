@@ -82,7 +82,7 @@ if @doc[:project_status]
 end
 if @doc[:template_org]
   headerTable[0][1].line_break
-  headerTable[0][1].apply(styles['Answer']) << "#{@phase_edition_instance.template_instance.template.organisation.organisation_type.title}: #{@phase_edition_instance.template_instance.template.organisation.full_name}"
+  headerTable[0][1].apply(styles['Answer']) << "#{@phase_edition_instance.template_instance.template.organisation.organisation_type.nil? ? nil : @phase_edition_instance.template_instance.template.organisation.organisation_type.title}: #{@phase_edition_instance.template_instance.template.organisation.full_name}"
 end
 if @doc[:partners]
   headerTable[0][1].line_break

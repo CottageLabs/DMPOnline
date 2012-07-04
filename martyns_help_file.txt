@@ -52,7 +52,8 @@ Development Log
 	rails generate active_admin:resource Repository
 
 12. Build queue:
-rails generate model RepositoryQueue repository_id:integer plan_id:integer phase_edition_instance_id:integer user_id:integer submitted_date:datetime repository_queue_status_id:integer status_date:datetime log:string
-rails generate model RepositoryQueueStatus name:string description:string
+rails generate model RepositoryActionQueue 
+rails generate model RepositoryActionStatus name:string description:string
+rails generate model RepositoryActionType name:string description:string
 Add the seed data as a rake task to lib/tasks/repository.rake
 run rake repository:seed

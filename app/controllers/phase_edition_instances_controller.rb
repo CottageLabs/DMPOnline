@@ -183,7 +183,7 @@ class PhaseEditionInstancesController < ApplicationController
       }
 
       #Now enqueue
-      RepositoryQueue.enqueue(@repository, @plan, @phase_edition_instance, current_user, files)
+      RepositoryActionQueue.enqueue(RepositoryActionType.Create_id, @repository, @plan, @phase_edition_instance, current_user, files)
   
       #Redirect to export screen
       redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
