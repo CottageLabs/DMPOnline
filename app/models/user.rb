@@ -2,6 +2,7 @@ class User < ActiveRecord::Base
   has_many :posts
   has_many :plans
   has_many :roles
+  has_many :repository_action_queues
   belongs_to :organisation
   
   # Include default devise modules. Others available are:
@@ -17,6 +18,9 @@ class User < ActiveRecord::Base
   # Also implications for access to plans need clearly signposted for users
   attr_readonly :email, :email_confirmation
   validates :email, uniqueness: {case_sensitive: false}, presence: true, confirmation: true
+
+  # Add repository_username attribute to user, for use with on_behalf_of deposits
+  attr_accessible :repository_username
 
   # User Roles used by DMPOnline
   # sysadmin: can manage everything in the system.

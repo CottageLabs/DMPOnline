@@ -44,6 +44,18 @@ class PlansController < ApplicationController
 #    @plan = Plan.new(params[:plan])
 
     if @plan.save
+            
+      # Create one or more records in the Repository. Note
+      # that one plan could have several template_instances / phase_edition_instances.
+      # Each template_instance could belong to a different
+      # organisation.
+      @plan.phase_edition_instances.each do |phase_edition_instance|
+        
+        if phase_edition_instance.template_instance.template.organisation.repository
+          RepositoryActionQueue.enqueue(RepositoryActionType.Create_id, phase_edition_instance.template_instance.template.organisation.repository, @plan, phase_edition_instance, current_user)
+        end          
+      end
+      
       redirect_to @plan, notice: t('dmp.plan_created')
     else
       render :new

@@ -1,3 +1,5 @@
+require 'sword2ruby'
+
 class Repository < ActiveRecord::Base
 
   cattr_accessor :config
@@ -22,8 +24,8 @@ class Repository < ActiveRecord::Base
           :conditions=> {:phase_edition_instance_id=>phase_edition_instance.id, :repository_id => self.id},
           :limit => 10, 
           :order=>"created_at desc", 
-          :select=>"id, created_at, repository_action_status_id, repository_action_log", 
-          :include=>[:repository_action_status])
+          :select=>"id, created_at, repository_action_type_id, repository_action_status_id, repository_action_log", 
+          :include=>[:repository_action_status, :repository_action_type])
         }
       else
         #Otherwise, return all queue entries
@@ -31,12 +33,16 @@ class Repository < ActiveRecord::Base
           :entries => RepositoryActionQueue.all(
             :conditions => {:repository_id => self.id},
             :order=>"created_at desc", 
-            :include=>[:repository_action_status, :phase_edition_instance])
+            :include=>[:repository_action_status, :repository_action_type])
           }
         
     end
   end
   
-
+  
+  def get_connection(on_behalf_of = nil)
+    user = Sword2Ruby::User.new(self.username, self.password, on_behalf_of);
+    connection = Sword2Ruby::Connection.new(user);    
+  end
 
 end

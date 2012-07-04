@@ -1,4 +1,5 @@
 %tr
   %td.date= repository_log_entry.created_at
+  %td.status= repository_log_entry.repository_action_type.name
   %td.status= repository_log_entry.repository_action_status.name
   %td.log= repository_log_entry.repository_action_log

@@ -1,12 +1,16 @@
 require 'bagit'
 require 'zip/zip'
+require 'sword2ruby'
 
 class RepositoryActionQueue < ActiveRecord::Base
   
   belongs_to :repository
   belongs_to :repository_action_status
   belongs_to :repository_action_type
-  
+  belongs_to :user
+  belongs_to :plan
+  belongs_to :phase_edition_instance
+    
   validates :repository_id, :presence => true #If you delete a repository, you should delete its queue first
   validates :plan_id, :presence => false #The plan could be deleted before the queue, hence could be null
   validates :phase_edition_instance_id, :presence => false  #The PEI could be deleted before the queue, hence could be null
@@ -30,33 +34,39 @@ class RepositoryActionQueue < ActiveRecord::Base
       :repository_action_status_id => RepositoryActionStatus.Initialising_id,
       :repository_action_uri => "FIX ME",
       :repository_action_log => "Initialised on #{DateTime.now}."
-)
-      
-    #Create the temporary file area
-    bagit_path = REPOSITORY_PATH.join('queue', queue_entry.id.to_s)
-    FileUtils.mkdir_p(bagit_path)
-    
-    # make a new bag at base_path
-    bag = BagIt::Bag.new(bagit_path)
-    
-    #Export the files to the bag
-    files.each do |file|
-      bag.add_file(file[:filename]) do |io|
-        io.binmode if (file[:binary])
-        io << file[:data]
-      end
-    end
+    )
 
-    # generate the manifest and tagmanifest files
-    bag.manifest!      
-    
-    #Now zip it all up
-    Zip::ZipFile.open(REPOSITORY_PATH.join('queue',"#{queue_entry.id}.zip").to_s, Zip::ZipFile::CREATE) do |zipfile|
-      self.add_directory_to_zipfile(bagit_path, bagit_path, zipfile)
+    #If there are files, put them in a bag and zip them up
+    if (files.length > 0)
+      
+      #Create the temporary file area
+      bagit_path = REPOSITORY_PATH.join('queue', queue_entry.id.to_s)
+      FileUtils.mkdir_p(bagit_path)
+
+      # make a new bag at base_path
+      bag = BagIt::Bag.new(bagit_path)
+
+      #Export the files to the bag
+      files.each do |file|
+        bag.add_file(file[:filename]) do |io|
+          io.binmode if (file[:binary])
+          io << file[:data]
+        end
+      end
+
+      # generate the manifest and tagmanifest files
+      bag.manifest!      
+
+      #Now zip it all up
+      Zip::ZipFile.open(REPOSITORY_PATH.join('queue',"#{queue_entry.id}.zip").to_s, Zip::ZipFile::CREATE) do |zipfile|
+        self.add_directory_to_zipfile(bagit_path, bagit_path, zipfile)
+      end
+
+      #Remove the old bagit folder
+      FileUtils.rm_rf bagit_path
+      
     end
-    
-    #Remove the old bagit folder
-    FileUtils.rm_rf bagit_path
+      
     
     #Update queue entry to pending
     queue_entry.repository_action_status_id = RepositoryActionStatus.Pending_id
@@ -68,15 +78,50 @@ class RepositoryActionQueue < ActiveRecord::Base
   
   def self.process
     logger.info "Processing the repository queue."
-    entries = RepositoryQueue.all(
+    queue_items = self.all(
       :conditions=> {:repository_action_status_id=>RepositoryActionStatus.Pending_id},
       :order=>"created_at asc")
-    logger.info "There are #{entries.count} item(s) in the queue to process"
-    entries.each do |entry|
-      logger.info "Processing #{entry.id}"
-      entry.repository_action_status_id = RepositoryActionStatus.Processing_id;
-      entry.save!
+    logger.info "There are #{queue_items.count} item(s) in the queue to process"
+    queue_items.each do |item|
+      logger.info "Processing #{item.id}"
+#      item.repository_action_status_id = RepositoryActionStatus.Processing_id;
+      item.save!
+
+      #Now process the queue acording to the type
+      case item.repository_action_type_id
+        #Creating a blank record (no files)
+        when RepositoryActionType.Create_id
+          logger.info "Creating entry #{item.id} on #{item.repository.sword_col_uri}"
+          
+          logger.info "Getting connection to repository with on_behalf_of username"
+          connection = item.repository.get_connection(item.user.repository_username) #Need to store repository username in User table
+          collection = ::Atom::Collection.new(item.repository.sword_col_uri, connection)
+          
+          entry = Atom::Entry.new()
+          entry.title = item.plan.project
+          entry.summary = "This entry was created during a test on #{Time.now}"
+          entry.updated = Time.now
+          
+          slug = item.plan.project.parameterize
+
+          deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
+
+          logger.info deposit_receipt
+                    
+          
+          
+          
+#          logger.info "#{connection}"
+          
+          
+          
+        
+
+      end
       
+      
+      
+      return queue_items.count
       
       
     end

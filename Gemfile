@@ -67,5 +67,6 @@ gem 'email_validator' #Add email validation gem
 gem "validate_url" #Add URL validation
 gem "validatable"
 gem "bagit"
+gem "sword2ruby"
 
 gem "thin" #used for production hosting
