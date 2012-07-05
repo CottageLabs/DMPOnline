@@ -12,7 +12,14 @@ class Plan < ActiveRecord::Base
   has_many :current_answers, :source => :answers, :through => :current_phase_edition_instances 
   has_many :questions, :through => :answers
 
-  attr_accessible :project, :currency_id, :budget, :start_date, :end_date, :lead_org, :other_orgs, :template_ids
+
+#  belongs_to :parent, :class_name => 'MyModel'
+#  has_many :children, :class_name => 'MyModel', :foreign_key => 'parent_id'
+    
+  belongs_to :source_plan, :class_name => 'Plan'
+  has_many :duplicate_plans, :class_name => 'Plan', :foreign_key => 'duplicated_from_plan_id'
+
+  attr_accessible :project, :currency_id, :budget, :start_date, :end_date, :lead_org, :other_orgs, :template_ids, :duplicated_from_plan_id
   accepts_nested_attributes_for :template_instances, :update_only => true, :allow_destroy => false
 
   validates_presence_of :project

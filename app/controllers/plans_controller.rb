@@ -49,8 +49,7 @@ class PlansController < ApplicationController
       # that one plan could have several template_instances / phase_edition_instances.
       # Each template_instance could belong to a different
       # organisation.
-      @plan.phase_edition_instances.each do |phase_edition_instance|
-        
+      @plan.phase_edition_instances.each do |phase_edition_instance|        
         if phase_edition_instance.template_instance.template.organisation.repository
           RepositoryActionQueue.enqueue(RepositoryActionType.Create_id, phase_edition_instance.template_instance.template.organisation.repository, @plan, phase_edition_instance, current_user)
         end          
@@ -90,9 +89,9 @@ class PlansController < ApplicationController
     sql = ActiveRecord::Base.connection()
 
     plan_id = sql.insert_sql <<EOSQL
-      INSERT INTO plans (project, currency_id, budget, start_date, end_date, lead_org, other_orgs, user_id, created_at, updated_at)
+      INSERT INTO plans (project, currency_id, budget, start_date, end_date, lead_org, other_orgs, user_id, created_at, updated_at, duplicated_from_plan_id)
       SELECT CONCAT('[#{t('dmp.copy_stamp')} #{DateTime.now.to_s(:short)}] ', project), currency_id, budget, start_date, end_date, lead_org, other_orgs, 
-          #{current_user.id}, now(), updated_at
+          #{current_user.id}, now(), updated_at, #{@plan.id}
         FROM plans
         WHERE id = #{@plan.id} 
 EOSQL
@@ -130,6 +129,14 @@ EOSQL
             phase_edition_instances new_pei ON new_pei.edition_id = e.id AND new_pei.id IN (#{new_pei_ids.join(',')})
 EOSQL
 
+    #Now Duplicate in the Repository
+    new_plan = Plan.find(plan_id)
+    new_plan.phase_edition_instances.each do |phase_edition_instance|
+      if phase_edition_instance.template_instance.template.organisation.repository
+        RepositoryActionQueue.enqueue(RepositoryActionType.Duplicate_id, phase_edition_instance.template_instance.template.organisation.repository, new_plan, phase_edition_instance, current_user)
+      end
+    end
+
     redirect_to plans_url, notice: t('dmp.plan_created')
   end
   
@@ -138,6 +145,15 @@ EOSQL
 #    @plan = Plan.for_user(current_user).find(params[:id])
 
     if @plan.update_attribute(:locked, true)
+
+      #Call finalise method in repository (NB: each plan can have several templates; a templates need not belong to the same organisation / repository)
+      @plan.phase_edition_instances.each do |phase_edition_instance|  
+        if phase_edition_instance.template_instance.template.organisation.repository
+          RepositoryActionQueue.enqueue(RepositoryActionType.Finalise_id, phase_edition_instance.template_instance.template.organisation.repository, @plan, phase_edition_instance, current_user)
+        end          
+      end
+      
+      
       redirect_to plans_url, notice: t('dmp.plan_updated')
     else
       redirect_to plan_path(@plan), error: t('dmp.update_failed')

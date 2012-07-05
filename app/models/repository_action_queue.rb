@@ -110,7 +110,8 @@ class RepositoryActionQueue < ActiveRecord::Base
       item.repository_action_status_id = RepositoryActionStatus.Processing_id;
       item.save!
       
-      
+      logger.info "Getting connection to repository with on_behalf_of username"
+      connection = item.repository.get_connection(item.user.repository_username)
 
       #Now process the queue acording to the type
       case item.repository_action_type_id
@@ -123,8 +124,7 @@ class RepositoryActionQueue < ActiveRecord::Base
           
           logger.info "Creating entry in #{item.repository_action_uri}"
           
-          logger.info "Getting connection to repository with on_behalf_of username"
-          connection = item.repository.get_connection(item.user.repository_username)
+          
           collection = ::Atom::Collection.new(item.repository_action_uri, connection)
           
           entry = Atom::Entry.new()
@@ -137,23 +137,91 @@ class RepositoryActionQueue < ActiveRecord::Base
           deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
           
           item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s
-          item.repository_action_log += "\nDeposited to #{item.repository_action_uri} on #{Time.now}."
-          item.phase_edition_instance.sword_edit_uri = deposit_receipt.entry.sword_edit_uri #QUESTION FOR RICHARD: Should this be entry_edit_uri ?
-          item.phase_edition_instance.sword_edit_media_uri = deposit_receipt.entry.edit_media_links().first.href #QUESTION FOR RICHARD: is it ok to take the first one ?
+          item.repository_action_log += "\nCREATE to #{item.repository_action_uri} on #{Time.now}."
+          item.phase_edition_instance.sword_edit_uri = deposit_receipt.entry.sword_edit_uri
+          item.phase_edition_instance.sword_edit_media_uri = deposit_receipt.entry.edit_media_links().first.href
           
           item.phase_edition_instance.save!
-
-          logger.info deposit_receipt
 
           item.repository_action_status_id = RepositoryActionStatus.Success_id;
           item.repository_action_log += "\nSuccess - at #{Time.now}."
           
-        #Performing an export (with files)
-        when RepositoryActionType.Export_id
-          # If the queue's repository_action_uri is set, use it, otherwise use the repository's sword_col_uri
+        #Performing an export (with files) / finalising
+        when RepositoryActionType.Export_id #, RepositoryActionType.Finalise_id
+          # If the queue's repository_action_uri is set, use it, otherwise use the PEI repository's Edit Media URI (via PUT)
           item.repository_action_uri ||= item.phase_edition_instance.sword_edit_media_uri
           
+          entry = Atom::Entry.new()
+          entry.links.new(:href => item.repository_action_uri, :rel=>"edit-media") #this is a hack to get around a bug in sword2ruby
           
+          #Meta data is coming from the RDF file wihin the zip-bagit file
+          deposit_receipt = entry.put_media!(
+            :filepath => REPOSITORY_PATH.join('queue',"#{item.id}.zip").to_s,
+            :content_type => "application/zip",
+            :connection => connection,
+            :metadata_relevant => true
+          )
+          
+          if deposit_receipt.has_entry
+            item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s            
+          end
+          item.repository_action_log += "\nEXPORT to #{item.repository_action_uri} on #{Time.now}."
+          
+          #If we are finalising the item, need a further Post
+          #if (item.repository_action_type_id == RepositoryActionType.Finalise_id)
+          #  entry = Atom::Entry.new()
+          #  entry.post!(:sword_edit_uri => item.phase_edition_instance.sword_edit_uri, :in_progress => false, :connection => connection)
+          #  item.repository_action_log += "\nFINALISE to #{item.phase_edition_instance.sword_edit_uri} on #{Time.now}."
+          #end
+          
+          item.repository_action_status_id = RepositoryActionStatus.Success_id;
+          item.repository_action_log += "\nSuccess - at #{Time.now}."            
+        
+        when RepositoryActionType.Finalise_id
+          # If the queue's repository_action_uri is set, use it, otherwise use the PEI repository's Edit Media URI (via PUT)
+          item.repository_action_uri ||= item.phase_edition_instance.sword_edit_uri
+          
+          entry = Atom::Entry.new()
+
+          deposit_receipt = entry.post!(:sword_edit_uri => item.repository_action_uri, :in_progress => false, :connection => connection)
+          item.repository_action_log += "\nFINALISE to #{item.repository_action_uri} on #{Time.now}."
+          if deposit_receipt.has_entry
+            item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s            
+          end
+          item.repository_action_status_id = RepositoryActionStatus.Success_id;
+          item.repository_action_log += "\nSuccess - at #{Time.now}."            
+
+
+        when RepositoryActionType.Duplicate_id
+          
+          # If the queue's repository_action_uri is set, use it, otherwise use the repository's sword_col_uri
+          item.repository_action_uri ||= item.repository.sword_col_uri
+          
+          logger.info "Creating entry in #{item.repository_action_uri}"
+          
+          
+          collection = ::Atom::Collection.new(item.repository_action_uri, connection)
+          
+          entry = Atom::Entry.new()
+          entry.title = item.plan.project
+          entry.summary = "DMP with template: #{item.phase_edition_instance.template_instance.template.name}."
+          entry.add_dublin_core_extension!("relation", "Duplicate of ???")
+          entry.updated = Time.now
+          
+          slug = "#{item.plan.project.parameterize}_#{Time.now.strftime("%FT%H-%M-%S")}"
+
+          deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
+          
+          item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s
+          item.repository_action_log += "\nDUPLICATE to #{item.repository_action_uri} on #{Time.now}."
+          item.phase_edition_instance.sword_edit_uri = deposit_receipt.entry.sword_edit_uri
+          item.phase_edition_instance.sword_edit_media_uri = deposit_receipt.entry.edit_media_links().first.href
+          
+          item.phase_edition_instance.save!
+
+          item.repository_action_status_id = RepositoryActionStatus.Success_id;
+          item.repository_action_log += "\nSuccess - at #{Time.now}."
+
 
         else
           item.repository_action_status_id = RepositoryActionStatus.Failed_id;
@@ -163,10 +231,6 @@ class RepositoryActionQueue < ActiveRecord::Base
       end
       
       item.save!      
-      
-      return deposit_receipt
-      
-      
     end
     
   end
@@ -174,7 +238,8 @@ class RepositoryActionQueue < ActiveRecord::Base
   
   #Helper function
   private
-  def self.add_directory_to_zipfile(directory, base_directory, zipfile)          
+  def self.add_directory_to_zipfile(directory, base_directory, zipfile)
+    puts "TEST self.add_directory_to_zipfile(#{directory}, #{base_directory})"
     directory.children(true).each do |entry|
       relative_entry = entry.relative_path_from(base_directory)
       if (entry.file?)

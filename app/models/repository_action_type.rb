@@ -18,6 +18,10 @@ class RepositoryActionType < ActiveRecord::Base
      return self.find_by_name('Finalise').id
    end
 
+   def self.Duplicate_id
+     return self.find_by_name('Duplicate').id
+   end
+
    def self.Delete_id
      return self.find_by_name('Delete').id
    end

@@ -137,6 +137,7 @@ RepositoryActionType.create!([
   {:name => 'Create', :description =>'Create record in repository'},
   {:name => 'Export', :description =>'Export record to repository'},
   {:name => 'Finalise', :description =>'Finalise record in repository'},
+  {:name => 'Duplicate', :description =>'Duplicate in repository'},
   {:name => 'Delete', :description =>'Delete record from repository'}
 ])
 
