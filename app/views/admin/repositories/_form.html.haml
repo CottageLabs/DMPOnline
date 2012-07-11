@@ -1,0 +1,22 @@
+= semantic_form_for [:admin, @repository] do |f|
+  = f.inputs I18n.t('dmp.admin.details') do
+    = f.input :organisation
+    = f.input :name
+    = f.input :sword_col_uri
+    = f.input :username
+    = f.input :password
+    = f.input :administrator_name
+    = f.input :administrator_email
+    = f.input :create_metadata_with_new_plan, :label => t('repository.automatic_metadata_deposit')
+  = f.inputs I18n.t('repository.automatic_deposit_types') do
+    = f.input :deposit_pdf, :label=> I18n.t('repository.deposit_pdf')
+    = f.input :deposit_html, :label=> I18n.t('repository.deposit_html')
+    = f.input :deposit_csv, :label=> I18n.t('repository.deposit_csv')
+    = f.input :deposit_txt, :label=> I18n.t('repository.deposit_txt')
+    = f.input :deposit_xml, :label=> I18n.t('repository.deposit_xml')
+    = f.input :deposit_xlsx, :label=> I18n.t('repository.deposit_xlsx')
+    = f.input :deposit_docx, :label=> I18n.t('repository.deposit_docx')
+    = f.input :deposit_rtf, :label=> I18n.t('repository.deposit_rtf')
+  = f.buttons do
+    = f.action :submit
+    = f.action :cancel, :wrapper_html=>{:class=>"cancel"}, :label => "Cancel"

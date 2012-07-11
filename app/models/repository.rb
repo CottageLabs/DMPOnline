@@ -8,6 +8,8 @@ class Repository < ActiveRecord::Base
   has_many :repository_action_queues
   
   attr_accessible :name, :organisation_id, :sword_col_uri, :username, :password, :administrator_name, :administrator_email
+  
+  attr_accessible :create_metadata_with_new_plan, :deposit_pdf, :deposit_html, :deposit_csv, :deposit_txt, :deposit_xml, :deposit_xlsx, :deposit_docx, :deposit_rtf
 
   validates :name, :uniqueness => true, :presence => true
   validates :organisation_id, :uniqueness => true

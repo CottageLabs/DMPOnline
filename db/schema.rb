@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120705152315) do
+ActiveRecord::Schema.define(:version => 20120710110822) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.integer  "resource_id",   :null => false
@@ -242,6 +242,15 @@ ActiveRecord::Schema.define(:version => 20120705152315) do
     t.string   "administrator_email"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.boolean  "create_metadata_with_new_plan"
+    t.boolean  "deposit_pdf"
+    t.boolean  "deposit_html"
+    t.boolean  "deposit_csv"
+    t.boolean  "deposit_txt"
+    t.boolean  "deposit_xml"
+    t.boolean  "deposit_xlsx"
+    t.boolean  "deposit_docx"
+    t.boolean  "deposit_rtf"
   end
 
   add_index "repositories", ["name"], :name => "index_repositories_on_name", :unique => true
