@@ -1,0 +1,12 @@
+%table
+  %thead
+    %tr
+      %th Date
+      %th Plan
+      %th User
+      %th Action
+      %th Status
+      %th Log
+  %tbody
+    -if log[:entries].count > 0
+      =render :partial=>'log_entry', :collection=> log[:entries]

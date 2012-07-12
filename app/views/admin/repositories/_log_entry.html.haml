@@ -1,0 +1,7 @@
+%tr
+  %td= log_entry.created_at.localtime.to_s(:repository_time)
+  %td= link_to(log_entry.plan.project, log_entry.plan)
+  %td= log_entry.user.email
+  %td= log_entry.repository_action_type.name
+  %td= log_entry.repository_action_status.name
+  %td= simple_format(log_entry.repository_action_log)

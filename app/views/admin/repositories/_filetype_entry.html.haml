@@ -1,0 +1,3 @@
+%tr
+  %th= t("repository.filetype.#{filetype_entry}")
+  %td= check_box_tag filetype_entry, 1, repository.send("deposit_#{filetype_entry.to_s}"), :disabled=>true

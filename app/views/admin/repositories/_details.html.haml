@@ -1,0 +1,24 @@
+.attributes_table
+  %table
+    %tbody
+      %tr
+        %th Name
+        %td= repository.name
+      %tr
+        %th Organisation
+        %td= link_to(repository.organisation.full_name, :controller => "admin/organisations", :action => "show", :id => repository.organisation)
+      %tr
+        %th Sword Collection URI
+        %td= link_to(repository.sword_col_uri, repository.sword_col_uri, :target=>"_blank")
+      %tr
+        %th Username
+        %td= repository.username
+      %tr
+        %th Administrator Name
+        %td= repository.administrator_name
+      %tr
+        %th Administrator Email
+        %td= repository.administrator_email
+      %tr
+        %th= t('repository.label.create_metadata_with_new_plan')
+        %td= check_box_tag :create_metadata_with_new_plan, 1, repository.create_metadata_with_new_plan, :disabled=>true

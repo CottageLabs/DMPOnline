@@ -7,16 +7,16 @@
     = f.input :password
     = f.input :administrator_name
     = f.input :administrator_email
-    = f.input :create_metadata_with_new_plan, :label => t('repository.automatic_metadata_deposit')
-  = f.inputs I18n.t('repository.automatic_deposit_types') do
-    = f.input :deposit_pdf, :label=> I18n.t('repository.deposit_pdf')
-    = f.input :deposit_html, :label=> I18n.t('repository.deposit_html')
-    = f.input :deposit_csv, :label=> I18n.t('repository.deposit_csv')
-    = f.input :deposit_txt, :label=> I18n.t('repository.deposit_txt')
-    = f.input :deposit_xml, :label=> I18n.t('repository.deposit_xml')
-    = f.input :deposit_xlsx, :label=> I18n.t('repository.deposit_xlsx')
-    = f.input :deposit_docx, :label=> I18n.t('repository.deposit_docx')
-    = f.input :deposit_rtf, :label=> I18n.t('repository.deposit_rtf')
+    = f.input :create_metadata_with_new_plan, :label => t('repository.label.create_metadata_with_new_plan')
+  = f.inputs I18n.t('repository.title.filetypes') do
+    = f.input :deposit_pdf, :label=> I18n.t('repository.filetype.pdf')
+    = f.input :deposit_html, :label=> I18n.t('repository.filetype.html')
+    = f.input :deposit_csv, :label=> I18n.t('repository.filetype.csv')
+    = f.input :deposit_txt, :label=> I18n.t('repository.filetype.txt')
+    = f.input :deposit_xml, :label=> I18n.t('repository.filetype.xml')
+    = f.input :deposit_xlsx, :label=> I18n.t('repository.filetype.xlsx')
+    = f.input :deposit_docx, :label=> I18n.t('repository.filetype.docx')
+    = f.input :deposit_rtf, :label=> I18n.t('repository.filetype.rtf')
   = f.buttons do
     = f.action :submit
     = f.action :cancel, :wrapper_html=>{:class=>"cancel"}, :label => "Cancel"

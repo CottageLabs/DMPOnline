@@ -9,8 +9,9 @@ class CreateRepositoryActionQueues < ActiveRecord::Migration
       t.references  :repository_action_status
       t.string      :repository_action_uri # it is necessary to store the URI on which to perform the action in the queue table, to handle the eventuality when the action is to delete from the repository something which has already been deleted from DMPOnline
       t.string      :repository_action_receipt
-      t.string      :repository_action_log
-      t.timestamps  #includes :created_at, :updated_at
+      t.text        :repository_action_log #This field can get quite long
+      
+      t.timestamps
     end
     
     add_index :repository_action_queues, :repository_id, :unique => false

@@ -240,8 +240,6 @@ ActiveRecord::Schema.define(:version => 20120710110822) do
     t.string   "password"
     t.string   "administrator_name"
     t.string   "administrator_email"
-    t.datetime "created_at"
-    t.datetime "updated_at"
     t.boolean  "create_metadata_with_new_plan"
     t.boolean  "deposit_pdf"
     t.boolean  "deposit_html"
@@ -251,6 +249,8 @@ ActiveRecord::Schema.define(:version => 20120710110822) do
     t.boolean  "deposit_xlsx"
     t.boolean  "deposit_docx"
     t.boolean  "deposit_rtf"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
   add_index "repositories", ["name"], :name => "index_repositories_on_name", :unique => true
@@ -265,7 +265,7 @@ ActiveRecord::Schema.define(:version => 20120710110822) do
     t.integer  "repository_action_status_id"
     t.string   "repository_action_uri"
     t.string   "repository_action_receipt"
-    t.string   "repository_action_log"
+    t.text     "repository_action_log"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

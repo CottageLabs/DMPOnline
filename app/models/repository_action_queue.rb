@@ -51,7 +51,7 @@ class RepositoryActionQueue < ActiveRecord::Base
       :repository_action_type_id => repository_action_type_id,
       :repository_action_status_id => RepositoryActionStatus.Initialising_id,
       :repository_action_uri => repository_action_uri,
-      :repository_action_log => "Initialised on #{Time.now}."
+      :repository_action_log => log_message("Initialised")    # "#{Time.localtime.to_s(:repository_time)}: Initialised.\n"
     )
 
     #If there are files, put them in a bag and zip them up
@@ -93,6 +93,10 @@ class RepositoryActionQueue < ActiveRecord::Base
     return queue_entry
   end
   
+  def self.log_message(message)
+    return "#{Time.now.localtime.to_s(:repository_time)}: #{message}\n" 
+  end
+    
   
   def self.process
     logger.info "Processing the repository queue."
@@ -137,14 +141,16 @@ class RepositoryActionQueue < ActiveRecord::Base
           deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
           
           item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s
-          item.repository_action_log += "\nCREATE to #{item.repository_action_uri} on #{Time.now}."
+          item.repository_action_log +=  log_message("Deposited to: #{item.repository_action_uri}")
+          item.repository_action_log +=  log_message("Edit URI: #{deposit_receipt.entry.sword_edit_uri}")
+          item.repository_action_log +=  log_message("Edit Media URI: #{deposit_receipt.entry.edit_media_links().first.href}")
           item.phase_edition_instance.sword_edit_uri = deposit_receipt.entry.sword_edit_uri
           item.phase_edition_instance.sword_edit_media_uri = deposit_receipt.entry.edit_media_links().first.href
           
           item.phase_edition_instance.save!
 
           item.repository_action_status_id = RepositoryActionStatus.Success_id;
-          item.repository_action_log += "\nSuccess - at #{Time.now}."
+          item.repository_action_log += log_message("Completed")  # "#{Time.localtime.to_s(:repository_time)}: completed.\n"  #{}"\nSuccess - at #{Time.now}."
           
         #Performing an export (with files) / finalising
         when RepositoryActionType.Export_id #, RepositoryActionType.Finalise_id
@@ -165,17 +171,17 @@ class RepositoryActionQueue < ActiveRecord::Base
           if deposit_receipt.has_entry
             item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s            
           end
-          item.repository_action_log += "\nEXPORT to #{item.repository_action_uri} on #{Time.now}."
+          item.repository_action_log += log_message("Deposited to: #{item.repository_action_uri}")
           
           #If we are finalising the item, need a further Post
           #if (item.repository_action_type_id == RepositoryActionType.Finalise_id)
           #  entry = Atom::Entry.new()
           #  entry.post!(:sword_edit_uri => item.phase_edition_instance.sword_edit_uri, :in_progress => false, :connection => connection)
-          #  item.repository_action_log += "\nFINALISE to #{item.phase_edition_instance.sword_edit_uri} on #{Time.now}."
+          #  item.repository_action_log +=  log_message("finalised") "\nFINALISE to #{item.phase_edition_instance.sword_edit_uri} on #{Time.now}."
           #end
           
           item.repository_action_status_id = RepositoryActionStatus.Success_id;
-          item.repository_action_log += "\nSuccess - at #{Time.now}."            
+          item.repository_action_log += log_message("Completed") # "\nSuccess - at #{Time.now}."            
         
         when RepositoryActionType.Finalise_id
           # If the queue's repository_action_uri is set, use it, otherwise use the PEI repository's Edit Media URI (via PUT)
@@ -184,12 +190,12 @@ class RepositoryActionQueue < ActiveRecord::Base
           entry = Atom::Entry.new()
 
           deposit_receipt = entry.post!(:sword_edit_uri => item.repository_action_uri, :in_progress => false, :connection => connection)
-          item.repository_action_log += "\nFINALISE to #{item.repository_action_uri} on #{Time.now}."
+          item.repository_action_log += log_message("Finalised to: #{item.repository_action_uri}")
           if deposit_receipt.has_entry
             item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s            
           end
           item.repository_action_status_id = RepositoryActionStatus.Success_id;
-          item.repository_action_log += "\nSuccess - at #{Time.now}."            
+          item.repository_action_log += log_message("Completed")  # {}"\nSuccess - at #{Time.now}."            
 
 
         when RepositoryActionType.Duplicate_id
@@ -213,19 +219,21 @@ class RepositoryActionQueue < ActiveRecord::Base
           deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
           
           item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s
-          item.repository_action_log += "\nDUPLICATE to #{item.repository_action_uri} on #{Time.now}."
+          item.repository_action_log += log_message("Deposited to: #{item.repository_action_uri}")
+          item.repository_action_log +=  log_message("Edit URI: #{deposit_receipt.entry.sword_edit_uri}")
+          item.repository_action_log +=  log_message("Edit Media URI: #{deposit_receipt.entry.edit_media_links().first.href}")
           item.phase_edition_instance.sword_edit_uri = deposit_receipt.entry.sword_edit_uri
           item.phase_edition_instance.sword_edit_media_uri = deposit_receipt.entry.edit_media_links().first.href
           
           item.phase_edition_instance.save!
 
           item.repository_action_status_id = RepositoryActionStatus.Success_id;
-          item.repository_action_log += "\nSuccess - at #{Time.now}."
+          item.repository_action_log += log_message("Completed")
 
 
         else
           item.repository_action_status_id = RepositoryActionStatus.Failed_id;
-          item.repository_action_log += "\nFailed - no handler for requested action type #{item.repository_action_type} at #{Time.now}."
+          item.repository_action_log += log_message("Failed - no handler for requested action type #{item.repository_action_type.name}")
           
 
       end
