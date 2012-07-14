@@ -55,6 +55,11 @@ module ApplicationHelper
         else 
           number_to_currency(plan.budget, unit: plan.currency.symbol).force_encoding('UTF-8')
         end
+      when :repository
+        plan.send(attribute).name
+      when :source_plan
+        plan.send(attribute).project
+        
       when :created_at, :updated_at, :start_date, :end_date
         l plan.send(attribute), format: date_format
       else

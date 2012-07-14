@@ -5,12 +5,17 @@ en:
             details: "Repository details"
             log: "Latest Repository Activity"
             filetypes: "File types to use when depositing to the repository"
+            plans: "Associated plans"
 
         label:
             deposit_in: "Deposit in "    
             create_metadata_with_new_plan: "Automatically deposit metadata whenever a plan is created"
+            status: "Repository status"
+            repository: "Repository"
+            duplicated_from: "Duplicated From"
 
         filetype:
+            rdf: ".RDF (Metadata)"
             pdf: ".PDF"
             html: ".HTML"
             csv: ".CSV"

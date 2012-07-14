@@ -4,11 +4,13 @@
       =sortable_header :project
       =sortable_header :start_date
       =sortable_header :lead_org
+      =sortable_header :repository
       %th{colspan: 2}
   
     - if @plans.blank?
       %tr
         %td= t('dmp.no_plans') 
+        %td
         %td
         %td
         %td
@@ -24,6 +26,7 @@
             %span.plan-owner= plan_created_by(plan)
         %td= plan_display(plan, :start_date, :short, true)
         %td= plan_display(plan, :lead_org, nil, true)
+        %td= plan_display(plan, :repository, nil, true)
         %td.actions= link_to t('dmp.admin.view'), plan, :class => 'view_link'
         %td.actions= link_to t('dmp.output'), output_plan_path(plan), :class => 'edit_link'
 

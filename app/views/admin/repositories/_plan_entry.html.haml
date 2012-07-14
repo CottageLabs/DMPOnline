@@ -1,0 +1,9 @@
+%tr
+  %td
+    = plan_display(plan_entry, :project, nil, true)
+    - if plan_entry.locked
+      %span.status= "#{t('dmp.locked')}"
+    - if plan_entry.user_id != current_user.id
+      %span.plan-owner= plan_created_by(plan_entry)
+  %td= plan_display(plan_entry, :start_date, :short, true)
+  %td= plan_display(plan_entry, :lead_org, nil, true)

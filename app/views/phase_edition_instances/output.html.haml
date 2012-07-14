@@ -1,5 +1,19 @@
 - title t('dmp.output_plan', plan: @plan.project)
 
+.test
+  THIS IS A TEST
+  %ul
+    %li= @phase_edition_instance
+    %li= @phase_edition_instance.id
+    %li= @phase_edition_instance.template_instance.template.name
+  %ul
+    %li= @plan
+    %li= @plan.id
+    %li= @plan.project
+  %ul
+    %li @output_all
+    %li= @output_all
+
 .output
   = form_for @phase_edition_instance, :url => export_plan_layer_path(@plan, @phase_edition_instance), :method => :post do |f|
     = hidden_field_tag "doc[output_all]", @output_all ? "1" : ""
@@ -86,17 +100,16 @@
             %tr
               %th= t('dmp.output_format')
               %td= select_tag 'format', '<option value="pdf">PDF</option><option value="html">HTML</option><option value="csv">CSV</option><option value="txt">TXT</option><option value="xml">XML</option><option value="xlsx">XLSX</option><option value="docx">DOCX</option><option value="rtf">RTF</option>'.html_safe
-            - if @repository
-              %tr
-                %th= t('repository.repository_log')
-                %td= render partial: 'repository_log', object: @repository.show_log(@phase_edition_instance)
+            %tr
+              %th= t('repository.label.status')
+              %td REPOSITORY STATUS HERE
             %tr
               %th
               %td
                 = f.submit name: "doc[inline]", value: t('dmp.open')
                 = f.submit name: "doc[attachment]", value: t('dmp.download')
                 - if @repository
-                  = f.submit name: "doc[deposit]", value: (t('repository.deposit') + @repository.name), id: "doc_deposit"
+                  = f.submit name: "doc[deposit]", value: (t('repository.label.deposit_in') + @repository.name), id: "doc_deposit"
 
     - unless @phase_edition_instance.template_instance.template.constraint_text.blank?
       .constraint= @phase_edition_instance.template_instance.template.constraint_text
@@ -117,3 +130,8 @@
                 %th= t('dmp.font_style')
                 %td= select_tag 'doc[font_style]', "<option value='sans-serif'>#{t('dmp.sans_serif')}</option><option value='serif'>#{t('dmp.serif')}</option>".html_safe
   
+    -if @repository
+      .panel
+        %h3= t('repository.title.log')
+        .panel_contents
+          =render '/admin/repositories/log', :queue => RepositoryActionQueue.latest(@repository, @plan, (@output_all ? nil : @phase_edition_instance)), :full=>false

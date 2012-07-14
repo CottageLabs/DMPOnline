@@ -45,16 +45,11 @@ class PlansController < ApplicationController
 
     if @plan.save
             
-      # Create one or more records in the Repository. Note
-      # that one plan could have several template_instances / phase_edition_instances.
-      # Each template_instance could belong to a different
-      # organisation.
-      @plan.phase_edition_instances.each do |phase_edition_instance|        
-        if phase_edition_instance.template_instance.template.organisation.repository
-          RepositoryActionQueue.enqueue(RepositoryActionType.Create_id, phase_edition_instance.template_instance.template.organisation.repository, @plan, phase_edition_instance, current_user)
-        end          
-      end
-      
+      # Create a record in the repository if the repository has been associated with the plan and the repository has create_metadata_with_new_plan = true
+      if @plan.repository && @plan.repository.create_metadata_with_new_plan
+        RepositoryActionQueue.enqueue(RepositoryActionType.Create_id, @plan.repository, @plan, nil, current_user)
+      end          
+
       redirect_to @plan, notice: t('dmp.plan_created')
     else
       render :new
@@ -75,6 +70,13 @@ class PlansController < ApplicationController
   # DELETE /plans/1
   def destroy
 #    @plan = Plan.for_user(current_user).find(params[:id])
+
+    # Need to queue a delete request with the repository
+    if @plan.repository && @plan.repository.create_metadata_with_new_plan
+      #RepositoryActionQueue.enqueue(RepositoryActionType.Delete_id, @plan.repository, @plan, nil, current_user)
+      # TO DO
+    end
+
     @plan.destroy
 
     redirect_to plans_url
@@ -86,12 +88,19 @@ class PlansController < ApplicationController
     # allow the default creation of template_instances and phase_edition_instances to happen.  The entire
     # copy of the plan, template_instances, phase_edition_instances and answers is done with raw SQL.
     # This also avoids the overhead of all the validation which should be unnecessary.
+    
+    #Note that some extra fields have been added for repository interaction. These are not duplicated to ensure a new entry is created in the repository.
+    
     sql = ActiveRecord::Base.connection()
-
+    
     plan_id = sql.insert_sql <<EOSQL
-      INSERT INTO plans (project, currency_id, budget, start_date, end_date, lead_org, other_orgs, user_id, created_at, updated_at, duplicated_from_plan_id)
+      INSERT INTO plans (project, currency_id, budget, start_date, end_date, lead_org, other_orgs, user_id, created_at, updated_at, 
+        repository_id, duplicated_from_plan_id,
+        repository_content_uri, repository_entry_edit_uri, repository_edit_media_uri, repository_sword_edit_uri, repository_sword_statement_uri)
       SELECT CONCAT('[#{t('dmp.copy_stamp')} #{DateTime.now.to_s(:short)}] ', project), currency_id, budget, start_date, end_date, lead_org, other_orgs, 
-          #{current_user.id}, now(), updated_at, #{@plan.id}
+          #{current_user.id}, now(), updated_at, 
+          repository_id, #{@plan.id}, 
+          NULL, NULL, NULL, NULL, NULL
         FROM plans
         WHERE id = #{@plan.id} 
 EOSQL
@@ -99,8 +108,8 @@ EOSQL
     ti_list = {}
     @plan.template_instances.for_user(current_user).each do |ti|
       new_id = sql.insert_sql <<EOSQL
-        INSERT INTO template_instances (template_id, plan_id, current_edition_id, created_at, updated_at, sword_col_uri)
-        SELECT template_id, #{plan_id}, current_edition_id, now(), updated_at, sword_col_uri
+        INSERT INTO template_instances (template_id, plan_id, current_edition_id, created_at, updated_at)
+        SELECT template_id, #{plan_id}, current_edition_id, now(), updated_at
         FROM template_instances
         WHERE id = #{ti.id}
 EOSQL
@@ -111,8 +120,8 @@ EOSQL
     old_pei_ids = []
     @plan.phase_edition_instances.for_user(current_user).each do |pei|
       new_id = sql.insert_sql <<EOSQL
-        INSERT INTO phase_edition_instances (template_instance_id, edition_id, created_at, updated_at, sword_edit_uri)
-        SELECT #{ti_list[pei.template_instance_id]}, edition_id, now(), updated_at, sword_edit_uri
+        INSERT INTO phase_edition_instances (template_instance_id, edition_id, created_at, updated_at)
+        SELECT #{ti_list[pei.template_instance_id]}, edition_id, now(), updated_at
       FROM phase_edition_instances
       WHERE id = #{pei.id}
 EOSQL
@@ -129,12 +138,10 @@ EOSQL
             phase_edition_instances new_pei ON new_pei.edition_id = e.id AND new_pei.id IN (#{new_pei_ids.join(',')})
 EOSQL
 
-    #Now Duplicate in the Repository
+    #Now Duplicate in the Repository IF the repository has create_metadata_with_new_plan
     new_plan = Plan.find(plan_id)
-    new_plan.phase_edition_instances.each do |phase_edition_instance|
-      if phase_edition_instance.template_instance.template.organisation.repository
-        RepositoryActionQueue.enqueue(RepositoryActionType.Duplicate_id, phase_edition_instance.template_instance.template.organisation.repository, new_plan, phase_edition_instance, current_user)
-      end
+    if new_plan.repository && new_plan.repository.create_metadata_with_new_plan
+      RepositoryActionQueue.enqueue(RepositoryActionType.Duplicate_id, new_plan.repository, new_plan, nil, current_user)
     end
 
     redirect_to plans_url, notice: t('dmp.plan_created')

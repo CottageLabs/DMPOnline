@@ -3,7 +3,7 @@ class CreateRepositories < ActiveRecord::Migration
     create_table :repositories do |t|
       t.references :organisation
       t.string :name
-      t.string :sword_col_uri
+      t.string :sword_collection_uri
       t.string :username
       t.string :password
       t.string :administrator_name
@@ -11,14 +11,15 @@ class CreateRepositories < ActiveRecord::Migration
       
       t.boolean :create_metadata_with_new_plan
 
-      t.boolean :deposit_pdf
-      t.boolean :deposit_html
-      t.boolean :deposit_csv
-      t.boolean :deposit_txt
-      t.boolean :deposit_xml
-      t.boolean :deposit_xlsx
-      t.boolean :deposit_docx
-      t.boolean :deposit_rtf
+      t.boolean :filetype_rdf
+      t.boolean :filetype_pdf
+      t.boolean :filetype_html
+      t.boolean :filetype_csv
+      t.boolean :filetype_txt
+      t.boolean :filetype_xml
+      t.boolean :filetype_xlsx
+      t.boolean :filetype_docx
+      t.boolean :filetype_rtf
 
       t.timestamps
     end

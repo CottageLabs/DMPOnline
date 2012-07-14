@@ -73,14 +73,14 @@ class PhaseEditionInstancesController < ApplicationController
 
   def output
     @eqs = @phase_edition_instance.report_questions
-    @repository = @phase_edition_instance.template_instance.template.organisation.repository
+    @repository = @plan.repository
     
     @output_all = false
   end
 
   def output_all
     @eqs = @phase_edition_instance.template_instance.plan.report_questions
-    @repository = @phase_edition_instance.template_instance.template.organisation.repository
+    @repository = @plan.repository
     
     @output_all = true
 
@@ -95,7 +95,7 @@ class PhaseEditionInstancesController < ApplicationController
       return
     end
     
-    @repository = @phase_edition_instance.template_instance.template.organisation.repository
+    @repository = @plan.repository
     
     @doc = params[:doc]
     pos = @doc[:position] || {}
@@ -153,40 +153,131 @@ class PhaseEditionInstancesController < ApplicationController
       @pei = @phase_edition_instance
     end
     
-    unless @doc[:deposit].blank?
+    #Only deposit if the user clicked on deposit, and there is a repository setup for the plan
+    unless (@doc[:deposit].blank? || @repository.nil?)
 
       #Generate files for export (done in controller so can use templated views)
       files = []
-
-      #PDF
-      files << {:filename => "#{@plan.project.parameterize}.pdf",
-        :binary => true,
-        :data => render_to_string(:pdf => "#{@plan.project.parameterize}.pdf",
-          template: 'phase_edition_instances/export.html',
-          margin: {:top => '1.7cm'},
-          orientation: 'portrait', 
-          default_header: false,
-          header: {right: '[page]/[topage]', left: @doc[:page_header_text], spacing: 3, line: true},
-          footer: {center: @doc[:page_footer_text], spacing: 1.2, line: true})
-      }
-      
-      #XML
-      files << {:filename => "#{@plan.project.parameterize}.xml",
-        :binary => false,
-        :data => render_to_string(:template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml]) 
-      }
       
       #RDF (to be completed!)
-      files << {:filename => "metadata.rdf",
-        :binary => false,
-        :data => "TO BE COMPLETED"
-      }
+      if @repository.filetype_rdf
+        logger.info "Generating RDF file"
+        files << {:filename => "metadata.rdf",
+          :binary => false,
+          :data => "TO BE COMPLETED"
+        }
+      end
+
+      #PDF
+      if @repository.filetype_pdf
+        logger.info "Generating PDF file"
+        files << {:filename => "#{@plan.project.parameterize}.pdf",
+          :binary => true,
+          :data => render_to_string(:pdf => "#{@plan.project.parameterize}.pdf",
+            template: 'phase_edition_instances/export.html',
+            margin: {:top => '1.7cm'},
+            orientation: 'portrait', 
+            default_header: false,
+            header: {right: '[page]/[topage]', left: @doc[:page_header_text], spacing: 3, line: true},
+            footer: {center: @doc[:page_footer_text], spacing: 1.2, line: true})
+        }
+      end
+      
+      #HTML
+      if @repository.filetype_html
+        logger.info "Generating HTML file"
+        files << {:filename => "#{@plan.project.parameterize}.html",
+          :binary => false,
+          :data => render_to_string(:template=>"phase_edition_instances/export.html.haml", layout: false, :formats => [:html])
+        }
+      end
+      
+      #CSV
+      if @repository.filetype_csv
+        logger.info "Generating CSV file"
+        files << {:filename => "#{@plan.project.parameterize}.csv",
+          :binary => false,
+          :data => render_to_string(:template=>"phase_edition_instances/export.csv.erb", layout: false, :formats => [:csv])
+        }
+      end
+
+      #TXT
+      if @repository.filetype_txt
+        logger.info "Generating TXT file"
+        files << {:filename => "#{@plan.project.parameterize}.txt",
+          :binary => false,
+          :data => render_to_string(:template=>"phase_edition_instances/export.txt.haml", layout: false, :formats => [:txt])
+        }
+      end
+      
+      #XML
+      if @repository.filetype_xml
+        logger.info "Generating XML file"
+        files << {:filename => "#{@plan.project.parameterize}.xml",
+          :binary => false,
+          :data => render_to_string(:template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml]) 
+        }
+      end
+      
+      #RTF
+      if @repository.filetype_rtf
+        logger.info "Generating RTF file"
+        files << {:filename => "#{@plan.project.parameterize}.rtf",
+          :binary => false,
+          :data => render_to_string(:template=>"phase_edition_instances/export.rtf.erb", layout: false, :formats => [:rtf])
+        }
+      end
+    
+      #XLSX
+      if @repository.filetype_xlsx
+        logger.info "Generating XLSX file"
+        
+        xlsx = Tempfile.new("dmp_xlsx")
+        xlsx.close
+        newpath = "#{xlsx.path}.xlsx"
+        newpath.gsub!(/^.*:/, '')
+        File.rename(xlsx.path, newpath)
+        @doc[:tmpfile] = newpath
+        
+        render_to_string(:template=>"phase_edition_instances/export.xlsx.erb", layout: false, :formats => [:xlsx])
+        
+        files << {:filename => "#{@plan.project.parameterize}.xlsx",
+          :binary => true,
+          :data => open(newpath, "rb") {|io| io.read }
+        }
+        
+        File.delete(newpath)
+      end
+      
+      #DOCX
+      if @repository.filetype_docx
+        logger.info "Generating DOCX file"
+        xml_data = render_to_string(:template=>"phase_edition_instances/export.xml.builder", layout: false, :formats => [:xml])
+        docx = Tempfile.new("dmp_docx")
+        docx.close
+        OfficeOpenXML.transform(xml_data, docx.path)
+        
+        files << {:filename => "#{@plan.project.parameterize}.docx",
+          :binary => true,
+          :data => open(docx.path, "rb") {|io| io.read }
+        }
+        
+        docx.unlink #delete the temporary file
+      end
+      
 
       #Now enqueue
-      RepositoryActionQueue.enqueue(RepositoryActionType.Export_id, @repository, @plan, @phase_edition_instance, current_user, files)
+      RepositoryActionQueue.enqueue(RepositoryActionType.Export_id, @repository, @plan, @doc[:output_all].blank? ? @phase_edition_instance : nil, current_user, files)
   
       #Redirect to export screen
-      redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
+      if (@doc[:output_all].blank?)
+        redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
+      else
+        puts "TEST--------------------------"
+        puts output_all_plan_layer_path(@plan, @phase_edition_instance)
+#        puts 1/0
+        redirect_to output_all_plan_layer_path(@plan, @phase_edition_instance)
+      end
       return
     end
 

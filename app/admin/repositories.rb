@@ -5,7 +5,7 @@ ActiveAdmin.register Repository do
 
   filter :name  
   filter :organisation
-  filter :sword_col_uri
+  filter :sword_collection_uri
   
   controller.authorize_resource
 
@@ -14,7 +14,7 @@ ActiveAdmin.register Repository do
    index do
      column :name
      column :organisation
-     column "Collection IRI", :sword_col_uri
+     column "Collection IRI", :sword_collection_uri
      column :username
      column :administrator_email
      column "Create Metadata" do |r|
@@ -25,7 +25,7 @@ ActiveAdmin.register Repository do
    
    
    show :title => :name do |repository|
-     filetypes = [:pdf, :html, :csv, :txt, :xml, :xlsx, :docx, :rtf]
+     filetypes = [:rdf, :pdf, :html, :csv, :txt, :xml, :xlsx, :docx, :rtf]
      render :partial=>"show", :locals => {:repository => repository, :filetypes => filetypes}
   end
  

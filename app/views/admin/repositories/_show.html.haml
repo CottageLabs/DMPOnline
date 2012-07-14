@@ -7,6 +7,10 @@
   .panel_contents
     =render 'filetypes', :repository => repository, :filetypes=> filetypes
 .panel
+  %h3= t('repository.title.plans')
+  .panel_contents
+    =render 'plans', :plans => repository.plans
+.panel
   %h3= t('repository.title.log')
   .panel_contents
-    =render  'log', :log => repository.show_log()
+    =render  'log', :queue => RepositoryActionQueue.latest(repository), :full=>true

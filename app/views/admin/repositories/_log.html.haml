@@ -2,11 +2,13 @@
   %thead
     %tr
       %th Date
-      %th Plan
+      -if (full)
+        %th Plan
       %th User
       %th Action
       %th Status
-      %th Log
+      -if (full)
+        %th Log
   %tbody
-    -if log[:entries].count > 0
-      =render :partial=>'log_entry', :collection=> log[:entries]
+    -if queue.count > 0
+      =render :partial=>'/admin/repositories/log_entry', :collection=> queue, :locals=>{:full=>full}

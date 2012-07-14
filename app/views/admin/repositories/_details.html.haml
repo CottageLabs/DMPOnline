@@ -9,7 +9,7 @@
         %td= link_to(repository.organisation.full_name, :controller => "admin/organisations", :action => "show", :id => repository.organisation)
       %tr
         %th Sword Collection URI
-        %td= link_to(repository.sword_col_uri, repository.sword_col_uri, :target=>"_blank")
+        %td= link_to(repository.sword_collection_uri, repository.sword_collection_uri, :target=>"_blank")
       %tr
         %th Username
         %td= repository.username

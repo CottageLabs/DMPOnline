@@ -12,6 +12,7 @@
       = f.input :end_date
       = f.input :lead_org
       = f.input :other_orgs
+      = f.input :repository
 
     = f.buttons do
       = f.commit_button
@@ -39,7 +40,7 @@
                     - t.each do |i|
                       %li.choice
                         %label{for: dom_id(i)}
-                          = check_box_tag 'plan[template_ids][]', i.id, @plan.template_ids.include?(i.id), id: dom_id(i), class: @plan.template_ids.include?(i.id) ? "warning" : nil, readonly: @plan.template_ids.include?(i.id)
+                          = check_box_tag 'plan[template_ids][]', i.id.to_s, @plan.template_ids.include?(i.id.to_s), id: dom_id(i), class: @plan.template_ids.include?(i.id.to_s) ? "warning" : nil, readonly: @plan.template_ids.include?(i.id.to_s)
                           = i.name
                         .description
                           = sanitize i.description

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120710110822) do
+ActiveRecord::Schema.define(:version => 20120705152315) do
 
   create_table "active_admin_comments", :force => true do |t|
     t.integer  "resource_id",   :null => false
@@ -168,7 +168,6 @@ ActiveRecord::Schema.define(:version => 20120710110822) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "sword_edit_uri"
-    t.string   "sword_edit_media_uri"
   end
 
   add_index "phase_edition_instances", ["edition_id"], :name => "index_phase_edition_instances_on_edition_id"
@@ -192,11 +191,17 @@ ActiveRecord::Schema.define(:version => 20120710110822) do
     t.date     "end_date"
     t.string   "lead_org"
     t.string   "other_orgs"
-    t.boolean  "locked",                  :default => false
+    t.boolean  "locked",                         :default => false
     t.integer  "user_id"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "duplicated_from_plan_id"
+    t.integer  "repository_id"
+    t.string   "repository_content_uri"
+    t.string   "repository_entry_edit_uri"
+    t.string   "repository_edit_media_uri"
+    t.string   "repository_sword_edit_uri"
+    t.string   "repository_sword_statement_uri"
   end
 
   add_index "plans", ["currency_id"], :name => "index_plans_on_currency_id"
@@ -235,20 +240,21 @@ ActiveRecord::Schema.define(:version => 20120710110822) do
   create_table "repositories", :force => true do |t|
     t.integer  "organisation_id"
     t.string   "name"
-    t.string   "sword_col_uri"
+    t.string   "sword_collection_uri"
     t.string   "username"
     t.string   "password"
     t.string   "administrator_name"
     t.string   "administrator_email"
     t.boolean  "create_metadata_with_new_plan"
-    t.boolean  "deposit_pdf"
-    t.boolean  "deposit_html"
-    t.boolean  "deposit_csv"
-    t.boolean  "deposit_txt"
-    t.boolean  "deposit_xml"
-    t.boolean  "deposit_xlsx"
-    t.boolean  "deposit_docx"
-    t.boolean  "deposit_rtf"
+    t.boolean  "filetype_rdf"
+    t.boolean  "filetype_pdf"
+    t.boolean  "filetype_html"
+    t.boolean  "filetype_csv"
+    t.boolean  "filetype_txt"
+    t.boolean  "filetype_xml"
+    t.boolean  "filetype_xlsx"
+    t.boolean  "filetype_docx"
+    t.boolean  "filetype_rtf"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

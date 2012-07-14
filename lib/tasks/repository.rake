@@ -19,26 +19,6 @@ namespace :repository do
       {:name => 'Delete', :description =>'Delete record from repository'}
     ])
 
-    Repository.create!([
-      {
-        :name => "SimpleSword DCC Repo",
-        :organisation_id => 1, 
-        :sword_col_uri => "http://localhost:8080/col-uri/dcc-collection", 
-        :username => "sword", 
-        :password => "sword",
-        :administrator_name => "Administrator",
-        :administrator_email => "admin@example.com"
-      },
-      {
-        :name => "SimpleSword Edinburgh Repo",
-        :organisation_id => 2, 
-        :sword_col_uri => "http://localhost:8080/col-uri/edinburgh-collection", 
-        :username => "sword", 
-        :password => "sword",
-        :administrator_name => "Administrator",
-        :administrator_email => "admin@example.com"
-      }
-    ])
     
   end
 

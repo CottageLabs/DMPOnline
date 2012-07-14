@@ -39,6 +39,12 @@
               %tr
                 %th= t('attributes.other_orgs')
                 %td= plan_display(@plan, :other_orgs, nil, true)
+              %tr
+                %th= t('repository.label.repository')
+                %td= plan_display(@plan, :repository, nil, true)
+              %tr
+                %th= t('repository.label.duplicated_from')
+                %td= plan_display(@plan, :source_plan, nil, true)
   
   .plan_right_column
     .link_spacing.top

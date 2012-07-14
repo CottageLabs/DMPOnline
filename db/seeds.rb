@@ -145,19 +145,29 @@ Repository.create!([
   {
     :name => "SimpleSword DCC Repo",
     :organisation_id => 1, 
-    :sword_col_uri => "http://localhost:8080/col-uri/dcc-collection", 
+    :sword_collection_uri => "http://localhost:8080/col-uri/dcc-collection", 
     :username => "sword", 
     :password => "sword",
     :administrator_name => "Administrator",
-    :administrator_email => "admin@example.com"
+    :administrator_email => "admin@example.com",
+    :create_metadata_with_new_plan => true,
+    :filetype_rdf => true,
+    :filetype_pdf => true,
+    :filetype_csv => true,
+    :filetype_txt => true
   },
   {
     :name => "SimpleSword Edinburgh Repo",
     :organisation_id => 2, 
-    :sword_col_uri => "http://localhost:8080/col-uri/edinburgh-collection", 
+    :sword_collection_uri => "http://localhost:8080/col-uri/edinburgh-collection", 
     :username => "sword", 
     :password => "sword",
     :administrator_name => "Administrator",
-    :administrator_email => "admin@example.com"
+    :administrator_email => "admin@example.com",
+    :create_metadata_with_new_plan => true,
+    :filetype_rdf => true,
+    :filetype_pdf => true,
+    :filetype_docx => true,
+    :filetype_xlsx => true
   }
 ])

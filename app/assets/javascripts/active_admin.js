@@ -5,3 +5,4 @@
 //= require wysiwyg
 //= require conditionals
 //= require cocoon
+//= require admin/repositories.js.coffee
