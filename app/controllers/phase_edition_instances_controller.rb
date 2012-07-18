@@ -266,8 +266,16 @@ class PhaseEditionInstancesController < ApplicationController
       end
       
 
-      #Now enqueue
-      RepositoryActionQueue.enqueue(RepositoryActionType.Export_id, @repository, @plan, @doc[:output_all].blank? ? @phase_edition_instance : nil, current_user, files)
+      # Do an EXPORT to the Edit-Media URI if there is already (or will be an entry) in the repository.
+      # Otherwise, do a CREATE to Col-URI.
+      if (!@plan.repository_entry_edit_uri.blank? or RepositoryActionQueue.has_deposited_metadata?(@repository, @plan))
+        #export
+        RepositoryActionQueue.enqueue(RepositoryActionType.Replace_Media_id, @repository, @plan, @doc[:output_all].blank? ? @phase_edition_instance : nil, current_user, files)
+      else
+        #create
+        RepositoryActionQueue.enqueue(RepositoryActionType.Create_Metadata_Media_id, @repository, @plan, @doc[:output_all].blank? ? @phase_edition_instance : nil, current_user, files)
+      end
+
   
       #Redirect to export screen
       if (@doc[:output_all].blank?)

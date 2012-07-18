@@ -13,4 +13,4 @@
 .panel
   %h3= t('repository.title.log')
   .panel_contents
-    =render  'log', :queue => RepositoryActionQueue.latest(repository), :full=>true
+    =render  'log', :queue => RepositoryActionQueue.latest_entries_any_phase(repository), :full=>true

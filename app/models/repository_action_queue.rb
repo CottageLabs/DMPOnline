@@ -27,16 +27,42 @@ class RepositoryActionQueue < ActiveRecord::Base
     
 
   #Get a list of the latest repository queue actions
-  def self.latest(repository, plan = nil, phase_edition_instance = nil, limit = REPOSITORY_LOG_LENGTH)
+  def self.latest_entries_any_phase(repository, plan = nil, limit = REPOSITORY_LOG_LENGTH)
     conditions = {:repository_id => repository.id}
     conditions[:plan_id] = plan.id if plan
-    conditions[:phase_edition_instance_id] = phase_edition_instance.id if phase_edition_instance
     
     all(  :conditions => conditions,
           :limit => limit, 
           :order=>"id desc", 
-          :include=>[:repository_action_status, :repository_action_type]) #, :user, :plan
+          :include=>[:repository_action_status, :repository_action_type, :user, :plan, :phase_edition_instance] )
   end
+  
+  def self.latest_entry_by_phase(repository, plan, phase_edition_instance)
+    conditions = {:repository_id => repository.id}
+    conditions[:plan_id] = plan.id
+    conditions[:phase_edition_instance_id] = phase_edition_instance.nil? ? nil : phase_edition_instance.id
+
+    first(  :conditions => conditions,
+            :order=>"id desc", 
+            :include=>[:repository_action_status, :repository_action_type, :user, :plan, :phase_edition_instance] )
+  end
+  
+  def self.has_deposited_media?(repository, plan, phase_edition_instance)
+    conditions = {:repository_id => repository.id}
+    conditions[:plan_id] = plan.id
+    conditions[:phase_edition_instance_id] = phase_edition_instance.nil? ? nil : phase_edition_instance.id
+    conditions[:repository_action_type_id] = [RepositoryActionType.Create_Metadata_Media_id, RepositoryActionType.Replace_Media_id, RepositoryActionType.Add_Media_id]
+     
+    exists?(conditions)
+  end
+
+  def self.has_deposited_metadata?(repository, plan)
+      conditions = {:repository_id => repository.id}
+      conditions[:plan_id] = plan.id
+      conditions[:repository_action_type_id] = [RepositoryActionType.Create_Metadata_id, RepositoryActionType.Create_Metadata_Media_id, RepositoryActionType.Duplicate_id]
+
+      exists?(conditions)
+    end
   
   
   #Cannot store URI in advance of action (except for delete), as then its not possible to create + update without queue running in between.
@@ -121,17 +147,6 @@ class RepositoryActionQueue < ActiveRecord::Base
   
   def self.process
     
-    #case repository_action_type_id
-    #  when RepositoryActionType.Create_id #POST Atom to COLLECTION URI
-    #    repository_action_uri = repository.sword_collection_uri
-    #  when RepositoryActionType.Export_id #PUT Package to EM-URI
-    #    repository_action_uri = "PUT PACKAGE TO EM-URI"
-    #  when RepositoryActionType.Finalise_id #PUT Package to EM-URI + POST to EDIT-URI
-    #    repository_action_uri = "PUT PACKAGE TO EM-URI THEN POST TO EDIT-URI"
-    #when RepositoryActionType.Delete_id #DELETE on EDIT URI
-    #  repository_action_uri = "DELETE on EDIT-URI"
-    
-    
     logger.info "Processing the repository queue."
     queue_items = self.all(
       :conditions=> {:repository_action_status_id=>RepositoryActionStatus.Pending_id},
@@ -141,7 +156,7 @@ class RepositoryActionQueue < ActiveRecord::Base
     queue_items.each do |item|      
       logger.info "Processing #{item.id}"
 
-      deposit_receipt = nil
+      deposit_receipt = nil #clear out previous receipt
 
       #record item as being processed
       item.repository_action_status_id = RepositoryActionStatus.Processing_id;
@@ -152,13 +167,19 @@ class RepositoryActionQueue < ActiveRecord::Base
       logger.info "Getting connection to repository with on_behalf_of username"
       connection = item.repository.get_connection(item.user.repository_username)
 
+      media_filepath = REPOSITORY_PATH.join('queue',"#{item.id}.zip").to_s
+      media_exists = File.exists?(media_filepath)
+      media_content_type = "application/zip"
+
 
 
       #Now process the queue acording to the type
       case item.repository_action_type_id
       
-        #Creating a blank record (no files) | Duplicating a record
-        when RepositoryActionType.Create_id, RepositoryActionType.Duplicate_id
+        # Creating a metadata only record (no files)
+        # Creating a metadata + files record
+        # Duplicating a record
+        when RepositoryActionType.Create_Metadata_id, RepositoryActionType.Create_Metadata_Media_id, RepositoryActionType.Duplicate_id
           
           # If the queue's repository_action_uri is set, use it, otherwise use the repository's Collection URI
           item.repository_action_uri ||= item.repository.sword_collection_uri
@@ -176,8 +197,19 @@ class RepositoryActionQueue < ActiveRecord::Base
           entry.updated = Time.now
           
           slug = "#{item.plan.project.parameterize}_#{Time.now.strftime("%FT%H-%M-%S")}"
-
-          deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
+          
+          if (item.repository_action_type_id == RepositoryActionType.Create_Metadata_Media_id)
+             if (media_exists)
+                deposit_receipt = collection.post_multipart!(:entry=>entry, :slug=>slug, :in_progress => true, :filepath => media_filepath, :content_type => media_content_type)
+              else
+                #Throw an error - requested an create with media but the media could not be found
+                raise "Media file #{media_filepath} could not be found. Check value of REPOSITORY_PATH in config/initializers/repository.config"
+              end
+          else
+              deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
+          end
+          
+         
           
           if (deposit_receipt && deposit_receipt.has_entry)
             item.plan.repository_content_uri = deposit_receipt.entry.content.src if deposit_receipt.entry.content && deposit_receipt.entry.content.src
@@ -186,15 +218,7 @@ class RepositoryActionQueue < ActiveRecord::Base
             item.plan.repository_sword_edit_uri = deposit_receipt.entry.sword_edit_uri if deposit_receipt.entry.sword_edit_uri
             item.plan.repository_sword_statement_uri = deposit_receipt.entry.sword_statement_links.first.href if deposit_receipt.entry.sword_statement_links.length > 0
             
-            logger.info ("ABOUT TO SAVE THE PLAN")
-            logger.info (item.plan.id)
-            logger.info (item.plan)
-            
             item.plan.save!
-
-            logger.info ("SAVED THE PLAN")
-
-
             
             item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s
             
@@ -214,7 +238,7 @@ class RepositoryActionQueue < ActiveRecord::Base
 
           
         #Performing an export (with files)
-        when RepositoryActionType.Export_id #, RepositoryActionType.Finalise_id
+        when RepositoryActionType.Replace_Media_id, RepositoryActionType.Add_Media_id
           # If the queue's repository_action_uri is set, use it, otherwise use the plan's Edit Media URI
           item.repository_action_uri ||= item.plan.repository_edit_media_uri
           item.repository_action_log +=  log_message( "<a href=\"#{item.repository_action_uri}\">Edit Media URI</a>") if item.repository_action_uri
@@ -223,14 +247,32 @@ class RepositoryActionQueue < ActiveRecord::Base
           entry.links.new(:href => item.repository_action_uri, :rel=>"edit-media")
           
           #Metadata should be coming from the RDF file wihin the zip-bagit file
-          deposit_receipt = entry.put_media!(
-            :filepath => REPOSITORY_PATH.join('queue',"#{item.id}.zip").to_s,
-            :content_type => "application/zip",
-            :connection => connection,
-            :metadata_relevant => item.repository.filetype_rdf  #Metadata is relevant if the repository is configured to generate RDF on deposits
-          )
-
-          item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s if deposit_receipt.has_entry
+          
+          if (media_exists)
+            
+            if (item.repository_action_type_id == RepositoryActionType.Replace_Media_id)
+              deposit_receipt = entry.put_media!(
+                :filepath => media_filepath, :content_type => media_content_type,
+                :connection => connection,
+                :metadata_relevant => item.repository.filetype_rdf  #Metadata is relevant if the repository is configured to generate RDF on deposits
+              )
+            else
+              #Post (add)
+              deposit_receipt = entry.post_media!(
+                :filepath => media_filepath, :content_type => media_content_type,
+                :connection => connection,
+                :metadata_relevant => item.repository.filetype_rdf  #Metadata is relevant if the repository is configured to generate RDF on deposits
+              )
+            end
+            
+            item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s if deposit_receipt.has_entry
+            
+          else
+            #Throw an error - requested an export but the media could not be found
+            raise "Media file #{media_filepath} could not be found. Check value of REPOSITORY_PATH in config/initializers/repository.config"            
+          end
+          
+          
           item.repository_action_status_id = RepositoryActionStatus.Success_id;
           item.repository_action_log += log_message("Completed")       
 

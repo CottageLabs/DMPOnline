@@ -272,6 +272,7 @@ ActiveRecord::Schema.define(:version => 20120705152315) do
     t.string   "repository_action_uri"
     t.string   "repository_action_receipt"
     t.text     "repository_action_log"
+    t.integer  "retry_count"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

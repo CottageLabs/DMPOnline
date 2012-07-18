@@ -35,7 +35,10 @@ class Plan < ActiveRecord::Base
   #attr_accessor :template_ids
 
   #before_validation :update_template_instances # MW LOOKS WRONG??
-  after_save :update_template_instances     #MW FIX
+  #after_save :update_template_instances     #MW FIX
+  #after_initialize :load_template_instances
+  
+  before_validation :update_template_instances
   after_initialize :load_template_instances
 
   
@@ -97,77 +100,102 @@ class Plan < ActiveRecord::Base
     !self.template_instance_rights.where(:role_flags => TemplateInstance::ROLES.index('write')).blank?
   end
   
+  def has_deposited_media?(phase_edition_instance = nil)
+    RepositoryActionQueue.has_deposited_media?(repository, self, phase_edition_instance) ? 1 : 0 #Easier to parse 1 or 0 in Javascript
+  end
+  
+  
+  def repository_status(phase_edition_instance = nil)
+    entry = RepositoryActionQueue.latest_entry_by_phase(repository, self, phase_edition_instance)
+    if (phase_edition_instance)
+      phase = phase_edition_instance.edition.phase.phase
+    else
+      phase = "all phases"
+    end
+      
+    if (entry)
+      "#{entry.repository_action_type.name}: #{entry.repository_action_status.name} (#{phase})"
+    else
+      I18n.t("repository.label.no_repository_queue_record") + " (#{phase})"
+    end
+  end
+  
+
   
   def template_ids
+    puts "IN template_ids --------------"
+    puts "BEFORE1 @template_ids = #{@template_ids}"
     @template_ids ||= template_instances.collect {|template_instance| template_instance.template_id.to_s}
+    puts "AFTER1 @template_ids = #{@template_ids}"
+
+    puts "FINISHED template_ids --------------"
+    puts " "
+    @template_ids
   end
   
   def template_ids=value
+    puts "IN template_ids=VALUE --------------"
+    puts "BEFORE2 @template_ids = #{@template_ids}"
+    
     @template_ids = value
+    puts "AFTER2 @template_ids = #{@template_ids}"
+
+    puts "FINISHED template_ids=VALUE --------------"
+    puts " "
+    
+    @template_ids
   end
   
   
-  def load_template_instances
-    @template_ids = template_instances.collect {|template_instance| template_instance.template_id.to_s} #|| []
-  end
+
   
   protected
   
+  def load_template_instances
+    puts "---E0 (load_template_instances) @template_ids = #{@template_ids}"
+    
+    
+     if @template_ids.nil?
+       @template_ids = template_instances.collect {|template_instance| template_instance.template_id.to_s} || []
+       
+       puts "---E1 (load_template_instances) @template_ids = #{@template_ids}"
+     end
+     
+     puts "---E2 (load_template_instances) @template_ids = #{@template_ids}"
+
+
+    @template_ids
+  end
 
   def update_template_instances
+
+    puts "---IN update_template_instances MW"
+
+    puts "---A template_ids = #{template_ids}"
 
       #For each template_instance which has an entry in template_ids, delete the record in template_ids
       template_instances.each do |template_instance|
         template_ids.delete(template_instance.template_id.to_s)
       end
 
+      puts "---B template_ids = #{template_ids}"
+
       #for each entry in template_ids, create a new templaet instance
       template_ids.each do |template_id|
         template_instances.build(:template_id => template_id.to_i) unless template_id.blank?
       end
+
+      puts "---C template_ids = #{template_ids}"
+      
       
       #now resynchronise template_ids
       load_template_instances
+      
+      puts "---D template_ids = #{template_ids}"
+            
 #      template_ids = template_instances.collect {|template_instance| template_instance.template_id}
 
   end
 
-
-
-  #after_save callback to handle template_instances
-  def update_template_instances_OLD
-    
-#    logger.info "NOW IN update_template_instances ---------------------- "
-#    logger.info "self.template_ids ---------------------- "    
-#    logger.info self.template_ids
-    
-    if !self.template_ids.nil? && self.template_ids.is_a?(Array)
-      
-#      logger.info "if ( !self.template_ids.nil? && self.template_ids.is_a?(Array)) is true ---------------------- "    
-      
-      self.template_instances.each do |t|
-        #t.destroy unless template_ids.include?(t.template_id.to_s)
-        
-#        logger.info "deleteing  #{t.template_id.to_s} ---------------------- "    
-        
-        self.template_ids.delete(t.template_id.to_s)
-      end
-      self.template_ids.each do |t|
-#        logger.info "building #{t} ---------------------- "    
-        self.template_instances.build(:template_id => t) unless t.blank?
-      end
-      self.template_ids = self.template_instances.collect {|t| t.template_id}
-    end
-
-#    logger.info "self.template_ids ---------------------- "    
-#    logger.info self.template_ids
-#    logger.info "FINISHED update_template_instances ---------------------- "
-  end
-
-#  def load_template_instances
-#    if self.template_ids.nil?
-#      self.template_ids = self.template_instances.collect {|t| t.template_id} || []
-#    end
-#  end
 
 end

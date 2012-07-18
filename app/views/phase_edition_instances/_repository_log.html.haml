@@ -1,8 +1,0 @@
-%input{:id => "deposit-count", :name => "deposit-count", :value => repository_log[:entries].count, :type => "hidden"}
-%table.repository_log
-  %tbody
-    - if repository_log[:entries].count > 0
-      = render partial: 'repository_log_entry', collection: repository_log[:entries]
-    - else
-      %tr
-        %td.warning WARNING: This plan has not been submitted to the repository. Please deposit it now.

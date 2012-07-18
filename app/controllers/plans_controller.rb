@@ -47,7 +47,7 @@ class PlansController < ApplicationController
             
       # Create a record in the repository if the repository has been associated with the plan and the repository has create_metadata_with_new_plan = true
       if @plan.repository && @plan.repository.create_metadata_with_new_plan
-        RepositoryActionQueue.enqueue(RepositoryActionType.Create_id, @plan.repository, @plan, nil, current_user)
+        RepositoryActionQueue.enqueue(RepositoryActionType.Create_Metadata_id, @plan.repository, @plan, nil, current_user)
       end          
 
       redirect_to @plan, notice: t('dmp.plan_created')

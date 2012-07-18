@@ -6,14 +6,17 @@ namespace :repository do
       {:name => 'Initialising', :description => 'Action initialising, not yet available for processing'},
       {:name => 'Pending', :description => 'Awaiting processing'},
       {:name => 'Processing', :description => 'In processing'},
-      {:name => 'Failed', :description => 'Failed processing'},
+      {:name => 'Failed - Requeue', :description => 'Failed processing, will automatically requeue and try again'},
+      {:name => 'Failed - Terminated', :description => 'Failed processing, terminated action and will not try again'},
       {:name => 'Success', :description => 'Succeeded processing'}
     ])
 
 
     RepositoryActionType.create!([
-      {:name => 'Create', :description =>'Create record in repository'},
-      {:name => 'Export', :description =>'Export record to repository'},
+      {:name => 'Create Metadata', :description =>'Create a metadata record in repository'},
+      {:name => 'Create Metadata and Media', :description =>'Create a metadata and media record in repository'},
+      {:name => 'Replace Media', :description =>'Replace (put) the existing media record'},
+      {:name => 'Add Media', :description =>'Add (post) to the existing media record'},
       {:name => 'Finalise', :description =>'Finalise record in repository'},
       {:name => 'Duplicate', :description =>'Duplicate in repository'},
       {:name => 'Delete', :description =>'Delete record from repository'}

@@ -13,6 +13,8 @@ en:
             status: "Repository status"
             repository: "Repository"
             duplicated_from: "Duplicated From"
+            no_repository_queue_record: "No repository action records found"
+            no_repository_record: "Plan not linked to a repository"
 
         filetype:
             rdf: ".RDF (Metadata)"

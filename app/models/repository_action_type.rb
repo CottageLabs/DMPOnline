@@ -6,14 +6,22 @@ class RepositoryActionType < ActiveRecord::Base
 
    validates :name, :uniqueness => true, :presence => true
 
-   def self.Create_id
-     return self.find_by_name('Create').id
+   def self.Create_Metadata_id
+     return self.find_by_name('Create Metadata').id
    end
 
-   def self.Export_id
-     return self.find_by_name('Export').id
+   def self.Create_Metadata_Media_id
+     return self.find_by_name('Create Metadata and Media').id
+   end
+   
+   def self.Replace_Media_id
+     return self.find_by_name('Replace Media').id
    end
 
+   def self.Add_Media_id
+     return self.find_by_name('Add Media').id
+   end
+   
    def self.Finalise_id
      return self.find_by_name('Finalise').id
    end
