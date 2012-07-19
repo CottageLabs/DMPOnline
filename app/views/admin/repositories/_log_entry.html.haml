@@ -1,8 +1,8 @@
 %tr
   %td= log_entry.created_at.localtime.to_s(:repository_time)
   -if (full)
-    %td= link_to(log_entry.plan.project, log_entry.plan)
-  %td= log_entry.phase_edition_instance.nil? ? "All" : log_entry.phase_edition_instance.edition.phase.phase
+    %td= log_entry.plan.nil? ? "Removed" : link_to(log_entry.plan.project, log_entry.plan)
+  %td= log_entry.plan.nil? ? "Removed" : log_entry.phase_edition_instance.nil? ? "All" : log_entry.phase_edition_instance.edition.phase.phase
   %td= log_entry.user.email
   %td= log_entry.repository_action_type.name
   %td= log_entry.repository_action_status.name

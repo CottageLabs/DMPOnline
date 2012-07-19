@@ -8,7 +8,8 @@ namespace :repository do
       {:name => 'Processing', :description => 'In processing'},
       {:name => 'Failed - Requeue', :description => 'Failed processing, will automatically requeue and try again'},
       {:name => 'Failed - Terminated', :description => 'Failed processing, terminated action and will not try again'},
-      {:name => 'Success', :description => 'Succeeded processing'}
+      {:name => 'Success', :description => 'Succeeded processing'},
+      {:name => 'Removed', :description => 'Removed from queue for Delete operation'}
     ])
 
 

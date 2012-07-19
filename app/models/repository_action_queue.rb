@@ -23,7 +23,7 @@ class RepositoryActionQueue < ActiveRecord::Base
 
 
   attr_accessible :repository_id, :plan_id, :phase_edition_instance_id, :user_id, 
-    :repository_action_type_id, :repository_action_status_id, :repository_action_uri, :repository_action_receipt, :repository_action_log
+    :repository_action_type_id, :repository_action_status_id, :repository_action_uri, :repository_action_receipt, :repository_action_log, :retry_count
     
 
   #Get a list of the latest repository queue actions
@@ -45,6 +45,16 @@ class RepositoryActionQueue < ActiveRecord::Base
     first(  :conditions => conditions,
             :order=>"id desc", 
             :include=>[:repository_action_status, :repository_action_type, :user, :plan, :phase_edition_instance] )
+  end
+  
+  def self.latest_entry_for_media_deposit(repository, plan, phase_edition_instance)
+    conditions = {:repository_id => repository.id}
+    conditions[:plan_id] = plan.id
+    conditions[:phase_edition_instance_id] = phase_edition_instance.id if phase_edition_instance
+    conditions[:repository_action_type_id] = [RepositoryActionType.Create_Metadata_Media_id, RepositoryActionType.Replace_Media_id, RepositoryActionType.Add_Media_id]
+    first(  :conditions => conditions,
+              :order=>"updated_at desc, created_at desc")
+    
   end
   
   def self.has_deposited_media?(repository, plan, phase_edition_instance)
@@ -73,6 +83,15 @@ class RepositoryActionQueue < ActiveRecord::Base
     
     case repository_action_type_id
     when RepositoryActionType.Delete_id
+      
+      #Mark all existing queue records as removed
+      self.update_all({:plan_id => nil, :phase_edition_instance_id => nil, :repository_action_status_id => RepositoryActionStatus.Removed_id}, 
+        {:repository_id => repository.id, :plan_id => plan.id})
+      
+      #If the existing plan has never been deposited in the repository, just exit. Otherwise, queue delete.
+      if (plan.repository_entry_edit_uri.blank?)
+        return
+      end
       repository_action_uri = plan.repository_entry_edit_uri
       plan_id = nil
       phase_edition_instance_id = nil
@@ -91,7 +110,8 @@ class RepositoryActionQueue < ActiveRecord::Base
       :repository_action_type_id => repository_action_type_id,
       :repository_action_status_id => RepositoryActionStatus.Initialising_id,
       :repository_action_uri => repository_action_uri,
-      :repository_action_log => log_message("Initialised")
+      :repository_action_log => log_message("Initialised"),
+      :retry_count => 0
     )
 
 
@@ -154,154 +174,191 @@ class RepositoryActionQueue < ActiveRecord::Base
     logger.info "There are #{queue_items.count} item(s) in the queue to process"
       
     queue_items.each do |item|      
-      logger.info "Processing #{item.id}"
+      
+      begin #exceptions could be generated here
+      
+      
+        logger.info "Processing #{item.id}"
 
-      deposit_receipt = nil #clear out previous receipt
+        deposit_receipt = nil #clear out previous receipt
 
-      #record item as being processed
-      item.repository_action_status_id = RepositoryActionStatus.Processing_id;
-      item.repository_action_log +=  log_message("Processing")
-      item.save!
+        #record item as being processed
+        item.repository_action_status_id = RepositoryActionStatus.Processing_id;
+        item.repository_action_log +=  log_message("Processing")
+        item.save!
       
 
-      logger.info "Getting connection to repository with on_behalf_of username"
-      connection = item.repository.get_connection(item.user.repository_username)
+        logger.info "Getting connection to repository with on_behalf_of username"
+        connection = item.repository.get_connection(item.user.repository_username)
 
-      media_filepath = REPOSITORY_PATH.join('queue',"#{item.id}.zip").to_s
-      media_exists = File.exists?(media_filepath)
-      media_content_type = "application/zip"
+        media_filepath = REPOSITORY_PATH.join('queue',"#{item.id}.zip").to_s
+        media_exists = File.exists?(media_filepath)
+        media_content_type = "application/zip"
 
 
 
-      #Now process the queue acording to the type
-      case item.repository_action_type_id
+        #Now process the queue acording to the type
+        case item.repository_action_type_id
       
-        # Creating a metadata only record (no files)
-        # Creating a metadata + files record
-        # Duplicating a record
-        when RepositoryActionType.Create_Metadata_id, RepositoryActionType.Create_Metadata_Media_id, RepositoryActionType.Duplicate_id
+          # Creating a metadata only record (no files)
+          # Creating a metadata + files record
+          # Duplicating a record
+          when RepositoryActionType.Create_Metadata_id, RepositoryActionType.Create_Metadata_Media_id, RepositoryActionType.Duplicate_id
           
-          # If the queue's repository_action_uri is set, use it, otherwise use the repository's Collection URI
-          item.repository_action_uri ||= item.repository.sword_collection_uri
-          item.repository_action_log +=  log_message( "<a href=\"#{item.repository_action_uri}\">Collection URI</a>") if item.repository_action_uri
+            # If the queue's repository_action_uri is set, use it, otherwise use the repository's Collection URI
+            item.repository_action_uri ||= item.repository.sword_collection_uri
+            item.repository_action_log +=  log_message( "<a href=\"#{item.repository_action_uri}\">Collection URI</a>") if item.repository_action_uri
           
-          collection = ::Atom::Collection.new(item.repository_action_uri, connection)
+            collection = ::Atom::Collection.new(item.repository_action_uri, connection)
           
-          entry = Atom::Entry.new()
-          entry.title = item.plan.project
-          summary = "Data management plan.";
-          summary += " Lead organisation: #{item.plan.lead_org}." if item.plan.lead_org
-          summary += " Start date: #{item.plan.start_date.to_s("%F")}." if item.plan.start_date          
-          entry.summary = summary
-          entry.add_dublin_core_extension!("relation", item.plan.source_plan.repository_entry_edit_uri) if item.plan.source_plan #Store duplicate relation
-          entry.updated = Time.now
+            entry = Atom::Entry.new()
+            entry.title = item.plan.project
+            summary = "Data management plan.";
+            summary += " Lead organisation: #{item.plan.lead_org}." if item.plan.lead_org
+            summary += " Start date: #{item.plan.start_date.to_s("%F")}." if item.plan.start_date          
+            entry.summary = summary
+            entry.add_dublin_core_extension!("relation", item.plan.source_plan.repository_entry_edit_uri) if item.plan.source_plan #Store duplicate relation
+            entry.updated = Time.now
           
-          slug = "#{item.plan.project.parameterize}_#{Time.now.strftime("%FT%H-%M-%S")}"
+            slug = "#{item.plan.project.parameterize}_#{Time.now.strftime("%FT%H-%M-%S")}"
           
-          if (item.repository_action_type_id == RepositoryActionType.Create_Metadata_Media_id)
-             if (media_exists)
-                deposit_receipt = collection.post_multipart!(:entry=>entry, :slug=>slug, :in_progress => true, :filepath => media_filepath, :content_type => media_content_type)
-              else
-                #Throw an error - requested an create with media but the media could not be found
-                raise "Media file #{media_filepath} could not be found. Check value of REPOSITORY_PATH in config/initializers/repository.config"
-              end
-          else
-              deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
-          end
+            if (item.repository_action_type_id == RepositoryActionType.Create_Metadata_Media_id)
+               if (media_exists)
+                  deposit_receipt = collection.post_multipart!(:entry=>entry, :slug=>slug, :in_progress => true, :filepath => media_filepath, :content_type => media_content_type)
+                else
+                  #Throw an error - requested an create with media but the media could not be found
+                  raise "Media file #{media_filepath} could not be found. Check value of REPOSITORY_PATH in config/initializers/repository.config"
+                end
+            else
+                deposit_receipt = collection.post!(:entry=>entry, :slug=>slug, :in_progress=>true)
+            end
           
          
           
-          if (deposit_receipt && deposit_receipt.has_entry)
-            item.plan.repository_content_uri = deposit_receipt.entry.content.src if deposit_receipt.entry.content && deposit_receipt.entry.content.src
-            item.plan.repository_entry_edit_uri = deposit_receipt.entry.entry_edit_uri if deposit_receipt.entry.entry_edit_uri
-            item.plan.repository_edit_media_uri = deposit_receipt.entry.edit_media_links.first.href if deposit_receipt.entry.edit_media_links.length > 0
-            item.plan.repository_sword_edit_uri = deposit_receipt.entry.sword_edit_uri if deposit_receipt.entry.sword_edit_uri
-            item.plan.repository_sword_statement_uri = deposit_receipt.entry.sword_statement_links.first.href if deposit_receipt.entry.sword_statement_links.length > 0
+            if (deposit_receipt && deposit_receipt.has_entry)
+              item.plan.repository_content_uri = deposit_receipt.entry.content.src if deposit_receipt.entry.content && deposit_receipt.entry.content.src
+              item.plan.repository_entry_edit_uri = deposit_receipt.entry.entry_edit_uri if deposit_receipt.entry.entry_edit_uri
+              item.plan.repository_edit_media_uri = deposit_receipt.entry.edit_media_links.first.href if deposit_receipt.entry.edit_media_links.length > 0
+              item.plan.repository_sword_edit_uri = deposit_receipt.entry.sword_edit_uri if deposit_receipt.entry.sword_edit_uri
+              item.plan.repository_sword_statement_uri = deposit_receipt.entry.sword_statement_links.first.href if deposit_receipt.entry.sword_statement_links.length > 0
             
-            item.plan.save!
+              item.plan.save!
             
-            item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s
+              item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s
             
-            item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_content_uri}\">Content URI</a>") if item.plan.repository_content_uri
-            item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_entry_edit_uri}\">Entry Edit URI</a>") if item.plan.repository_entry_edit_uri
-            item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_edit_media_uri}\">Edit Media URI</a>") if item.plan.repository_edit_media_uri
-            item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_sword_edit_uri}\">Sword Edit URI</a>") if item.plan.repository_sword_edit_uri
-            item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_sword_statement_uri}\">Sword Statement URI</a>") if item.plan.repository_sword_statement_uri
+              item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_content_uri}\">Content URI</a>") if item.plan.repository_content_uri
+              item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_entry_edit_uri}\">Entry Edit URI</a>") if item.plan.repository_entry_edit_uri
+              item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_edit_media_uri}\">Edit Media URI</a>") if item.plan.repository_edit_media_uri
+              item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_sword_edit_uri}\">Sword Edit URI</a>") if item.plan.repository_sword_edit_uri
+              item.repository_action_log +=  log_message( "<a href=\"#{item.plan.repository_sword_statement_uri}\">Sword Statement URI</a>") if item.plan.repository_sword_statement_uri
+          
+              item.repository_action_status_id = RepositoryActionStatus.Success_id;
+              item.repository_action_log += log_message("Completed")
+            else
+              item.repository_action_status_id = RepositoryActionStatus.Failed_id;
+              item.repository_action_log += log_message("Deposit receipt was not returned")
+            end
+
+
+          
+          #Performing an export (with files)
+          when RepositoryActionType.Replace_Media_id, RepositoryActionType.Add_Media_id
+            # If the queue's repository_action_uri is set, use it, otherwise use the plan's Edit Media URI
+            item.repository_action_uri ||= item.plan.repository_edit_media_uri
+            item.repository_action_log +=  log_message( "<a href=\"#{item.repository_action_uri}\">Edit Media URI</a>") if item.repository_action_uri
+          
+            entry = Atom::Entry.new()
+            entry.links.new(:href => item.repository_action_uri, :rel=>"edit-media")
+          
+            #Metadata should be coming from the RDF file wihin the zip-bagit file
+          
+            if (media_exists)
+            
+              if (item.repository_action_type_id == RepositoryActionType.Replace_Media_id)
+                deposit_receipt = entry.put_media!(
+                  :filepath => media_filepath, :content_type => media_content_type,
+                  :connection => connection,
+                  :metadata_relevant => item.repository.filetype_rdf  #Metadata is relevant if the repository is configured to generate RDF on deposits
+                )
+              else
+                #Post (add)
+                deposit_receipt = entry.post_media!(
+                  :filepath => media_filepath, :content_type => media_content_type,
+                  :connection => connection,
+                  :metadata_relevant => item.repository.filetype_rdf  #Metadata is relevant if the repository is configured to generate RDF on deposits
+                )
+              end
+            
+              item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s if deposit_receipt.has_entry
+            
+            else
+              #Throw an error - requested an export but the media could not be found
+              raise "Media file #{media_filepath} could not be found. Check value of REPOSITORY_PATH in config/initializers/repository.config"            
+            end
+          
           
             item.repository_action_status_id = RepositoryActionStatus.Success_id;
-            item.repository_action_log += log_message("Completed")
-          else
-            item.repository_action_status_id = RepositoryActionStatus.Failed_id;
-            item.repository_action_log += log_message("Deposit receipt was not returned")
-          end
+            item.repository_action_log += log_message("Completed")       
 
-
+        
+        
+        
+          when RepositoryActionType.Finalise_id
+            # If the queue's repository_action_uri is set, use it, otherwise use the  plan's Sword Edit URI
+            item.repository_action_uri ||= item.plan.repository_sword_edit_uri
+            item.repository_action_log +=  log_message( "<a href=\"#{item.repository_action_uri}\">Sword Edit URI</a>") if item.repository_action_uri
           
-        #Performing an export (with files)
-        when RepositoryActionType.Replace_Media_id, RepositoryActionType.Add_Media_id
-          # If the queue's repository_action_uri is set, use it, otherwise use the plan's Edit Media URI
-          item.repository_action_uri ||= item.plan.repository_edit_media_uri
-          item.repository_action_log +=  log_message( "<a href=\"#{item.repository_action_uri}\">Edit Media URI</a>") if item.repository_action_uri
-          
-          entry = Atom::Entry.new()
-          entry.links.new(:href => item.repository_action_uri, :rel=>"edit-media")
-          
-          #Metadata should be coming from the RDF file wihin the zip-bagit file
-          
-          if (media_exists)
-            
-            if (item.repository_action_type_id == RepositoryActionType.Replace_Media_id)
-              deposit_receipt = entry.put_media!(
-                :filepath => media_filepath, :content_type => media_content_type,
-                :connection => connection,
-                :metadata_relevant => item.repository.filetype_rdf  #Metadata is relevant if the repository is configured to generate RDF on deposits
-              )
-            else
-              #Post (add)
-              deposit_receipt = entry.post_media!(
-                :filepath => media_filepath, :content_type => media_content_type,
-                :connection => connection,
-                :metadata_relevant => item.repository.filetype_rdf  #Metadata is relevant if the repository is configured to generate RDF on deposits
-              )
+            entry = Atom::Entry.new()
+            deposit_receipt = entry.post!(:sword_edit_uri => item.repository_action_uri, :in_progress => false, :connection => connection)
+            if deposit_receipt.has_entry
+              item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s            
             end
-            
-            item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s if deposit_receipt.has_entry
-            
+          
+            item.repository_action_status_id = RepositoryActionStatus.Success_id;
+            item.repository_action_log += log_message("Completed")      
+
+
+
+          when RepositoryActionType.Delete_id
+            # If the queue's repository_action_uri is set, use it, otherwise use the  plan's Sword Edit URI
+          
+            if item.repository_action_uri.blank?
+              raise "Cannot delete item as the repository_action_uri has not been set"
+            end
+
+            item.repository_action_log +=  log_message( "<a href=\"#{item.repository_action_uri}\">Entry Edit URI</a>") if item.repository_action_uri
+          
+            entry = Atom::Entry.new()
+            deposit_receipt = entry.delete!(:entry_edit_uri => item.repository_action_uri, :connection => connection)
+
+            if deposit_receipt.has_entry
+              item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s            
+            end
+          
+            item.repository_action_status_id = RepositoryActionStatus.Success_id;
+            item.repository_action_log += log_message("Completed")      
+
+
+
           else
-            #Throw an error - requested an export but the media could not be found
-            raise "Media file #{media_filepath} could not be found. Check value of REPOSITORY_PATH in config/initializers/repository.config"            
-          end
-          
-          
-          item.repository_action_status_id = RepositoryActionStatus.Success_id;
-          item.repository_action_log += log_message("Completed")       
-
+            item.repository_action_status_id = RepositoryActionStatus.Failed_Terminated_id;
+            item.repository_action_log += log_message("Failed (Terminated) - no handler for requested action type #{item.repository_action_type.name}")
+         
         
+          
+        end
+        item.save!
         
-        
-        when RepositoryActionType.Finalise_id
-          # If the queue's repository_action_uri is set, use it, otherwise use the  plan's Sword Edit URI
-          item.repository_action_uri ||= item.plan.repository_sword_edit_uri
-          item.repository_action_log +=  log_message( "<a href=\"#{item.repository_action_uri}\">Sword Edit URI</a>") if item.repository_action_uri
-          
-          entry = Atom::Entry.new()
-          deposit_receipt = entry.post!(:sword_edit_uri => item.repository_action_uri, :in_progress => false, :connection => connection)
-          if deposit_receipt.has_entry
-            item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s            
-          end
-          
-          item.repository_action_status_id = RepositoryActionStatus.Success_id;
-          item.repository_action_log += log_message("Completed")      
+      rescue Exception => msg
+        logger.error msg
+        item.repository_action_log += log_message("Error: #{msg}") 
+        item.repository_action_status_id = Failed_Retry_id
+        #TO DO - FINISH THIS BIT
 
-
-        else
-          item.repository_action_status_id = RepositoryActionStatus.Failed_id;
-          item.repository_action_log += log_message("Failed - no handler for requested action type #{item.repository_action_type.name}")
-          
-      end
+      end    #end of exceptions could be generated here
       
-      item.save!      
-    end
+      
+    end #queue_items.each
     
   end
   

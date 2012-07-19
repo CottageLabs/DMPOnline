@@ -72,9 +72,8 @@ class PlansController < ApplicationController
 #    @plan = Plan.for_user(current_user).find(params[:id])
 
     # Need to queue a delete request with the repository
-    if @plan.repository && @plan.repository.create_metadata_with_new_plan
-      #RepositoryActionQueue.enqueue(RepositoryActionType.Delete_id, @plan.repository, @plan, nil, current_user)
-      # TO DO
+    if @plan.repository && RepositoryActionQueue.has_deposited_metadata?(@plan.repository, @plan)
+      RepositoryActionQueue.enqueue(RepositoryActionType.Delete_id, @plan.repository, @plan, nil, current_user)
     end
 
     @plan.destroy
@@ -153,12 +152,16 @@ EOSQL
 
     if @plan.update_attribute(:locked, true)
 
-      #Call finalise method in repository (NB: each plan can have several templates; a templates need not belong to the same organisation / repository)
-      @plan.phase_edition_instances.each do |phase_edition_instance|  
-        if phase_edition_instance.template_instance.template.organisation.repository
-          RepositoryActionQueue.enqueue(RepositoryActionType.Finalise_id, phase_edition_instance.template_instance.template.organisation.repository, @plan, phase_edition_instance, current_user)
-        end          
+      #Call finalise method in repository
+      if @plan.repository
+        RepositoryActionQueue.enqueue(RepositoryActionType.Finalise_id, @plan.repository, @plan, nil, current_user)
       end
+      
+      #@plan.phase_edition_instances.each do |phase_edition_instance|  
+      #  if phase_edition_instance.template_instance.template.organisation.repository
+      #    RepositoryActionQueue.enqueue(RepositoryActionType.Finalise_id, phase_edition_instance.template_instance.template.organisation.repository, @plan, phase_edition_instance, current_user)
+      #  end          
+      #end
       
       
       redirect_to plans_url, notice: t('dmp.plan_updated')

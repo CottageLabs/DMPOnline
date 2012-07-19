@@ -30,4 +30,7 @@ class RepositoryActionStatus < ActiveRecord::Base
      return self.find_by_name('Success').id
    end
    
+   def self.Removed_id
+     return self.find_by_name('Removed').id
+   end
 end

@@ -12,12 +12,7 @@ class Plan < ActiveRecord::Base
   has_many :current_answers, :source => :answers, :through => :current_phase_edition_instances 
   has_many :questions, :through => :answers
 
-
-#  belongs_to :parent, :class_name => 'MyModel'
-#  has_many :children, :class_name => 'MyModel', :foreign_key => 'parent_id'
-
   belongs_to :repository
-
   belongs_to :source_plan, :class_name => 'Plan', :foreign_key => 'duplicated_from_plan_id' #Rails Magic!
   has_many :duplicate_plans, :class_name => 'Plan', :foreign_key => 'duplicated_from_plan_id'
 
@@ -104,6 +99,22 @@ class Plan < ActiveRecord::Base
     RepositoryActionQueue.has_deposited_media?(repository, self, phase_edition_instance) ? 1 : 0 #Easier to parse 1 or 0 in Javascript
   end
   
+  def lock_warning
+    if repository
+      entry = RepositoryActionQueue.latest_entry_for_media_deposit(repository, self, nil)
+      if (entry)
+        if (entry.updated_at > (Time.now - 30.minutes))
+          "This plan was submitted to the repository today at #{entry.updated_at.localtime.strftime("%H:%M")}.  " + I18n.t('dmp.lock_confirm')
+        else
+          "WARNING: This plan was last submitted to the repository on #{entry.updated_at.localtime.to_s(:repository_time)}.  #{I18n.t('dmp.lock_confirm')}"
+        end        
+      else
+        "WARNING: This plan has not been deposited in the repository.  #{I18n.t('dmp.lock_confirm')}"
+      end
+    else
+      I18n.t('dmp.lock_confirm')
+    end
+  end
   
   def repository_status(phase_edition_instance = nil)
     entry = RepositoryActionQueue.latest_entry_by_phase(repository, self, phase_edition_instance)
@@ -123,76 +134,37 @@ class Plan < ActiveRecord::Base
 
   
   def template_ids
-    puts "IN template_ids --------------"
-    puts "BEFORE1 @template_ids = #{@template_ids}"
     @template_ids ||= template_instances.collect {|template_instance| template_instance.template_id.to_s}
-    puts "AFTER1 @template_ids = #{@template_ids}"
-
-    puts "FINISHED template_ids --------------"
-    puts " "
-    @template_ids
   end
   
   def template_ids=value
-    puts "IN template_ids=VALUE --------------"
-    puts "BEFORE2 @template_ids = #{@template_ids}"
-    
     @template_ids = value
-    puts "AFTER2 @template_ids = #{@template_ids}"
-
-    puts "FINISHED template_ids=VALUE --------------"
-    puts " "
-    
-    @template_ids
   end
   
-  
-
   
   protected
   
   def load_template_instances
-    puts "---E0 (load_template_instances) @template_ids = #{@template_ids}"
-    
-    
      if @template_ids.nil?
        @template_ids = template_instances.collect {|template_instance| template_instance.template_id.to_s} || []
-       
-       puts "---E1 (load_template_instances) @template_ids = #{@template_ids}"
-     end
-     
-     puts "---E2 (load_template_instances) @template_ids = #{@template_ids}"
-
-
+     end   
     @template_ids
   end
 
   def update_template_instances
-
-    puts "---IN update_template_instances MW"
-
-    puts "---A template_ids = #{template_ids}"
-
       #For each template_instance which has an entry in template_ids, delete the record in template_ids
       template_instances.each do |template_instance|
         template_ids.delete(template_instance.template_id.to_s)
       end
 
-      puts "---B template_ids = #{template_ids}"
-
       #for each entry in template_ids, create a new templaet instance
       template_ids.each do |template_id|
         template_instances.build(:template_id => template_id.to_i) unless template_id.blank?
       end
-
-      puts "---C template_ids = #{template_ids}"
-      
       
       #now resynchronise template_ids
       load_template_instances
-      
-      puts "---D template_ids = #{template_ids}"
-            
+                  
 #      template_ids = template_instances.collect {|template_instance| template_instance.template_id}
 
   end

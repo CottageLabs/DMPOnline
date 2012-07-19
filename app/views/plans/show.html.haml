@@ -83,7 +83,7 @@
       - if cannot? :update, @plan
         %span.disabled_link= t('dmp.admin.lock')
       - else
-        = link_to t('dmp.admin.lock'), lock_plan_path(@plan), :confirm => t('dmp.lock_confirm'), :method => :put, :class => 'lock_link'
+        = link_to t('dmp.admin.lock'), lock_plan_path(@plan), :confirm => @plan.lock_warning, :method => :put, :class => 'lock_link'
     = link_to t('dmp.admin.duplicate'), duplicate_plan_path(@plan), :method => :post, :class => 'edit_link'
     - if cannot? :update, @plan
       %span.disabled_link= t('dmp.admin.delete')
