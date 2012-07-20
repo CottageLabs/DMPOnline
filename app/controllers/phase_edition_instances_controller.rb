@@ -281,9 +281,6 @@ class PhaseEditionInstancesController < ApplicationController
       if (@doc[:output_all].blank?)
         redirect_to output_plan_layer_path(@plan, @phase_edition_instance)
       else
-        puts "TEST--------------------------"
-        puts output_all_plan_layer_path(@plan, @phase_edition_instance)
-#        puts 1/0
         redirect_to output_all_plan_layer_path(@plan, @phase_edition_instance)
       end
       return

@@ -1,4 +1,4 @@
-Dear <%= @entry.repository.name%> Administrator,
+Dear <%= @entry.repository.administrator_name%>,
 
 Unfortunately, a terminal error has occurred with the following repository action queue entry:
 
@@ -11,7 +11,7 @@ Action Status: 	<%= @entry.repository_action_status.name %> (<%= @entry.reposito
 Submitting user: 	<%= @entry.user.email %> (<%= @entry.user.id %>)
 Repository Action URI: 	<%= @entry.repository_action_uri %>
 Repository Receipt: 	<%= @entry.repository_action_receipt %>
-Retry Count: 	<%= @entry.retry_count %>
+Retry Count: 	<%= @entry.retry_count + 1 %>
 
 
 Repository Log:

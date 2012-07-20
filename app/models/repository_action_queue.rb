@@ -164,7 +164,7 @@ class RepositoryActionQueue < ActiveRecord::Base
     
     requeue_count = RepositoryActionQueue.update_all(
       "repository_action_status_id = #{RepositoryActionStatus.Pending_id}, retry_count = COALESCE(retry_count,0) + 1, repository_action_log=CONCAT(repository_action_log, '#{log_message("Resubmitted failed process")}')",
-       {:repository_action_status_id => RepositoryActionStatus.Failed_Requeue_id} )
+       {:repository_action_status_id => RepositoryActionStatus.Failed_Requeue_id, :repository_id=> Repository.all.collect{|r| r.id}} )
     
     logger.info "Requeued #{requeue_count} failed process(es)" if (requeue_count > 0)
     
