@@ -385,7 +385,6 @@ class RepositoryActionQueue < ActiveRecord::Base
   #Helper function
   private
   def self.add_directory_to_zipfile(directory, base_directory, zipfile)
-    puts "TEST self.add_directory_to_zipfile(#{directory}, #{base_directory})"
     directory.children(true).each do |entry|
       relative_entry = entry.relative_path_from(base_directory)
       if (entry.file?)

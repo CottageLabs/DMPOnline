@@ -1,4 +1,10 @@
-= DMPOnline
+= DMPOnline with SWORD Integration
+
+This project has been forked from https://github.com/DigitalCurationCentre/DMPOnline
+
+This version of DMPOnline uses the Sword2Ruby gem to integrate with repositories.
+
+---
 
 DMPOnline is the DCC's data management planning tool, available at https://dmponline.dcc.ac.uk
 
