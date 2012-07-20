@@ -16,11 +16,6 @@ class RepositoryActionQueue < ActiveRecord::Base
   validates :repository_id, :presence => true #If you delete a repository, you should delete its queue first
   validates :repository_action_type_id, :presence => true    
   validates :repository_action_status_id, :presence => true
-  
-#  validates :plan_id, :presence => false #The plan could be deleted before the queue, hence could be null
-#  validates :phase_edition_instance_id, :presence => false  #The PEI could be deleted before the queue, hence could be null
-#  validates :user_id, :presence => false  #The user could be deleted before the queue, hence could be null
-
 
   attr_accessible :repository_id, :plan_id, :phase_edition_instance_id, :user_id, 
     :repository_action_type_id, :repository_action_status_id, :repository_action_uri, :repository_action_receipt, :repository_action_log, :retry_count
@@ -167,18 +162,29 @@ class RepositoryActionQueue < ActiveRecord::Base
   
   def self.process
     
-    logger.info "Processing the repository queue."
+    requeue_count = RepositoryActionQueue.update_all(
+      "repository_action_status_id = #{RepositoryActionStatus.Pending_id}, retry_count = COALESCE(retry_count,0) + 1, repository_action_log=CONCAT(repository_action_log, '#{log_message("Resubmitted failed process")}')",
+       {:repository_action_status_id => RepositoryActionStatus.Failed_Requeue_id} )
+    
+    logger.info "Requeued #{requeue_count} failed process(es)" if (requeue_count > 0)
+    
     queue_items = self.all(
       :conditions=> {:repository_action_status_id=>RepositoryActionStatus.Pending_id},
       :order=>"id asc") #first in, first out
-    logger.info "There are #{queue_items.count} item(s) in the queue to process"
+
+    
+    if (queue_items.count > 0)
+      logger.info "There are #{queue_items.count} item(s) in the queue to process"
+    else
+      logger.info "The queue is empty"
+    end
       
     queue_items.each do |item|      
       
       begin #exceptions could be generated here
       
       
-        logger.info "Processing #{item.id}"
+        logger.info "Processing #{item.id}"        
 
         deposit_receipt = nil #clear out previous receipt
 
@@ -188,7 +194,6 @@ class RepositoryActionQueue < ActiveRecord::Base
         item.save!
       
 
-        logger.info "Getting connection to repository with on_behalf_of username"
         connection = item.repository.get_connection(item.user.repository_username)
 
         media_filepath = REPOSITORY_PATH.join('queue',"#{item.id}.zip").to_s
@@ -255,7 +260,7 @@ class RepositoryActionQueue < ActiveRecord::Base
               item.repository_action_status_id = RepositoryActionStatus.Success_id;
               item.repository_action_log += log_message("Completed")
             else
-              item.repository_action_status_id = RepositoryActionStatus.Failed_id;
+              item.repository_action_status_id = RepositoryActionStatus.Failed_Requeue_id;
               item.repository_action_log += log_message("Deposit receipt was not returned")
             end
 
@@ -292,7 +297,7 @@ class RepositoryActionQueue < ActiveRecord::Base
               item.repository_action_receipt = deposit_receipt.entry.to_xml.to_s if deposit_receipt.has_entry
             
             else
-              #Throw an error - requested an export but the media could not be found
+              #Raise an error - requested an export but the media could not be found
               raise "Media file #{media_filepath} could not be found. Check value of REPOSITORY_PATH in config/initializers/repository.config"            
             end
           
@@ -342,24 +347,38 @@ class RepositoryActionQueue < ActiveRecord::Base
 
           else
             item.repository_action_status_id = RepositoryActionStatus.Failed_Terminated_id;
-            item.repository_action_log += log_message("Failed (Terminated) - no handler for requested action type #{item.repository_action_type.name}")
+            item.repository_action_log += log_message("Failed (Terminated) - no handler for: #{item.repository_action_type.name}")
          
-        
-          
         end
         item.save!
         
       rescue Exception => msg
         logger.error msg
         item.repository_action_log += log_message("Error: #{msg}") 
-        item.repository_action_status_id = Failed_Retry_id
-        #TO DO - FINISH THIS BIT
+
+        if (item.retry_count + 1 < REPOSITORY_QUEUE_RETRIES)
+          item.repository_action_status_id = RepositoryActionStatus.Failed_Requeue_id
+          item.repository_action_log += log_message("Action to be re-attempted")
+          item.repository_action_log += log_message("Attempt count: #{item.retry_count + 1} of #{REPOSITORY_QUEUE_RETRIES}")
+          logger.warn "Requeued item #{item.id}"
+        else
+          item.repository_action_status_id = RepositoryActionStatus.Failed_Terminated_id
+          item.repository_action_log += log_message("Terminated")
+          item.repository_action_log += log_message("Attempt count: #{item.retry_count + 1} of #{REPOSITORY_QUEUE_RETRIES}")
+          
+          #Send email
+          RepositoryNotifier.report_queue_error(item, msg).deliver
+          
+        end
+          
+        item.save!
 
       end    #end of exceptions could be generated here
       
       
     end #queue_items.each
     
+    return queue_items.count
   end
   
   

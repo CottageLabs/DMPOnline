@@ -1,0 +1,30 @@
+Dear <%= @entry.repository.name%> Administrator,
+
+Unfortunately, a terminal error has occurred with the following repository action queue entry:
+
+Queue Id: 	<%= @entry.id %>
+Repository: 	<%= @entry.repository.name %> (<%= @entry.repository.id %>)
+Plan: 	<%= @entry.plan.project %> (<%= @entry.plan.id %>)
+Phase: 	<%= @entry.phase_edition_instance.edition.phase.phase if @entry.phase_edition_instance %> 
+Action Type: 	<%= @entry.repository_action_type.name %> (<%= @entry.repository_action_type.id %>)
+Action Status: 	<%= @entry.repository_action_status.name %> (<%= @entry.repository_action_status.id %>)
+Submitting user: 	<%= @entry.user.email %> (<%= @entry.user.id %>)
+Repository Action URI: 	<%= @entry.repository_action_uri %>
+Repository Receipt: 	<%= @entry.repository_action_receipt %>
+Retry Count: 	<%= @entry.retry_count %>
+
+
+Repository Log:
+<%= @entry.repository_action_log %>
+
+
+Exception Message:
+<%= @exception %>
+
+
+
+Please could you investigate and take any necessary remedial action.
+
+Have a nice day!
+
+Repository automated error reporter.

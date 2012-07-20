@@ -1,0 +1,11 @@
+development:
+    :smtp_settings:
+        :address: smtp.gmail.com
+        :port: 587
+        :authentication: plain
+        :user_name: XXXX
+        :password: XXXX
+        :enable_starttls_auto: true
+    :default:
+        :from: error-reporter@example.com
+        :subject: Error in Repository Processor

@@ -7,3 +7,4 @@ er-diagram.mwb.bak
 .DS_Store
 config/deploy.rb
 Capfile
+config/email.yml

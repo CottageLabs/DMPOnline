@@ -4,5 +4,6 @@
 REPOSITORY_PATH = Rails.root.join('repository')
 
 REPOSITORY_LOG_LENGTH = 100
+REPOSITORY_QUEUE_RETRIES = 3
 
 Time::DATE_FORMATS[:repository_time] = "%d-%b-%y %H:%M:%S"
