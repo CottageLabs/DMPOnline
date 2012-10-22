@@ -1,6 +1,6 @@
 en:
   dmp:
-    title: "DMP Online"
+    title: "ANDS version of DMP Online"
     strapline: "The ANDS adapted DCC's Data Management Planning Tool"
     jisc_funded: "Funded by JISC"
     return_plans: "Return to a saved plan"
@@ -10,7 +10,7 @@ en:
     posted_by: "posted by %{user}, %{period} ago"
     no_news: "There is no news yet."
     rss_title: "DMPOnline News"
-    rss_description: "News from the DCC Data Management Planning Tool"
+    rss_description: "News from the ANDS version of the Data Management Planning Tool"
     download: "Download"
 
     dcc_questions: "ANDS recommended Questions"
