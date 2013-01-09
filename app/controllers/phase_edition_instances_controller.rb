@@ -1,3 +1,5 @@
+require 'rdf/ntriples'
+
 # encoding: utf-8
 class PhaseEditionInstancesController < ApplicationController
   respond_to :html
@@ -264,6 +266,16 @@ class PhaseEditionInstancesController < ApplicationController
       else
         send_file docx.path, :type => :docx, :filename => @doc[:filename]
       end
+      
+    #Turtle RDF Metadata
+    when :ttl
+      output = RDF::Writer.for(:ntriples).buffer do |writer|
+        writer << RDF::Graph.new do |graph|
+          graph << [:hello, RDF::DC.title, "Hello, world!"]
+        end
+      end
+      
+      send_data output
 
     else
       nil

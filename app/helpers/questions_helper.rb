@@ -246,6 +246,18 @@ module QuestionsHelper
 
     strip_tags(output)
   end
+  
+  def response_ttl_format(response)
+    output = ''
+    if response.is_a?(Array)
+      response.each do |part|
+        output += "* #{part.is_a?(Array) ? part.to_sentence : part.to_s}\r\n"
+      end
+    else
+      output = response.to_s
+    end
+    strip_tags(output)
+  end
 
   def clean_html(html)
     strip_tags(Nokogiri::HTML.fragment(html.to_s).to_s)

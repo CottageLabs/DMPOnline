@@ -96,6 +96,6 @@ module ApplicationHelper
   end
 
   def metadata_option_available?
-    Rails.application.config.export_formats.include?(:rdf)
+    Rails.application.config.export_formats.include?(:ttl)  # or :rdf ????  TO CHECK
   end
 end

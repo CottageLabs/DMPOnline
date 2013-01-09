@@ -396,7 +396,7 @@ en:
       other: "Other"
 
     formats:
-      rdf: ".RDF (Metadata)"
+      ttl: ".TTL (Turtle RDF)"
       pdf: ".PDF"
       html: ".HTML"
       csv: ".CSV"

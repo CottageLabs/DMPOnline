@@ -20,7 +20,8 @@ module Dmponline3
     
     # Supported export formats.  If you don't want to offer a particular format, 
     # you can remove it from this list
-    config.export_formats = [:pdf, :html, :csv, :txt, :xml, :xlsx, :docx, :rtf]
+    # :ttl is Turtle (RDF) format: http://www.w3.org/TeamSubmission/turtle/
+    config.export_formats = [:pdf, :html, :csv, :txt, :xml, :xlsx, :docx, :rtf, :ttl] 
 
 
     # Repository submission settings:

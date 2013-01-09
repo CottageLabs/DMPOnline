@@ -8,3 +8,4 @@ Mime::Type.register_alias "text/plain", :txt
 Mime::Type.register "text/richtext", :rtf
 Mime::Type.register "application/vnd.openxmlformats-officedocument.wordprocessingml.document", :docx
 Mime::Type.register "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", :xlsx
+Mime::Type.register "text/turtle", :ttl
