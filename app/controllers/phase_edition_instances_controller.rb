@@ -1,4 +1,4 @@
-require 'rdf/ntriples'
+require 'rdf/turtle'
 
 # encoding: utf-8
 class PhaseEditionInstancesController < ApplicationController
@@ -269,13 +269,13 @@ class PhaseEditionInstancesController < ApplicationController
       
     #Turtle RDF Metadata
     when :ttl
-      output = RDF::Writer.for(:ntriples).buffer do |writer|
-        writer << RDF::Graph.new do |graph|
-          graph << [:hello, RDF::DC.title, "Hello, world!"]
-        end
-      end
-      
-      send_data output
+#      output = RDF::Writer.for(:ntriples).buffer do |writer|
+#        writer << RDF::Graph.new do |graph|
+#          graph << [:hello, RDF::DC.title, "Hello, world!"]
+#        end
+#      end
+      render_to_string :export, layout: false
+#      send_data output
 
     else
       nil

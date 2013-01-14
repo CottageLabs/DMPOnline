@@ -73,4 +73,4 @@ gem 'bagit', '0.2.0'
 gem 'sword2ruby', '1.0.0'
 gem "attr_encrypted", '1.2.1'
 gem "rdf", "0.3.11.1"
-gem "rdf-raptor", "0.4.2"
+gem "rdf-turtle", "~> 0.3.2"
