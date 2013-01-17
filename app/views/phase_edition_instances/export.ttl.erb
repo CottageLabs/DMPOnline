@@ -1,13 +1,189 @@
 <%-
+	graph = RDF::Graph.new
 
-graph = RDF::Graph.load("tmp/example.ttl", :format => :ttl)
+	my_dmp = RDF::Node.new("my-DMP")
+	dmp_creator = RDF::Node.new("DMP-creator")
+	dmp_creator_member_role = RDF::Node.new("DMP-creator-member-role")
+	dmp_creator_member_organisation = RDF::Node.new("DMP-creator-member-organisation")
 
-# output = RDF::Turtle::Writer.buffer( :prefixes => {:foaf => "http://xmlns.com/foaf/0.1/"} ) do |writer|
-#, :prefixes => {:foaf => "http://xmlns.com/foaf/0.1/"}, :base_uri=>"http://boo.com/" 
+	this_project = RDF::Node.new("this-project")
+	principal_investigator_role = RDF::Node.new("principal-investigator-role")
+	principal_investigator = RDF::Node.new("principal-investigator")
+	principal_investigator_role_in_time = RDF::Node.new("principal-investigator-role-in-time")
+	principal_investigator_role_in_time_organisation1 = RDF::Node.new("principal_investigator_role_in_time_organisation1")
+	principal_investigator_role_in_time_organisation2 = RDF::Node.new("principal_investigator_role_in_time_organisation2")
+	principal_investigator_role_in_time_organisation3 = RDF::Node.new("principal_investigator_role_in_time_organisation3")
+	
+	data_manager_role = RDF::Node.new("data-manager-role")
+	data_manager = RDF::Node.new("data-manager")
+	data_manager_role_in_time = RDF::Node.new("data-manager-role-in-time")
+	data_manager_role_in_time_organisation1 = RDF::Node.new("data_manager_role_in_time_organisation1")
+	
+	dmp_status = RDF::Node.new("dmp-status")
+	dmp_status_time = RDF::Node.new("dmp-status-time")
+		
+	confidentiality_justification = RDF::Node.new("confidentiality-justification")
+	non_confidentiality_justification = RDF::Node.new("non-confidentiality-justification")
+
+	funding_status = RDF::Node.new("funding-status")
+	my_grant = RDF::Node.new("my-grant")
+	grant_application = RDF::Node.new("grant-application")
+	application_status = RDF::Node.new("application-status")
+	funding_agency = RDF::Node.new("funding-agency")
+
+	funding_programme = RDF::Node.new("funding_programme")
+	
+	#my-DMP
+	graph << RDF::Statement.new(my_dmp, RDF.type, RDF::URI.new("http://purl.org/spar/fabio/DataManagementPlan") )
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/title"), "UNKNOWN Data management plan for the Ethodata Project" )
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/created"), "UNKNOWN Created Date" )
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/creator"), dmp_creator )
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/refersTo"), this_project )
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/versionIdentifier"), "UNKNOWN Version Number" )
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/doi"), "UNKNOWN DOI" )
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/spar/pso/holdsStatusInTime"),  dmp_status)
+	
+	#dmp_creator
+	graph << RDF::Statement.new(dmp_creator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
+	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN Richard" )
+	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN Jones" )
+	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"), dmp_creator_member_role )
+	
+	#dmp_creator_member_role
+	graph << RDF::Statement.new(dmp_creator_member_role, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
+	graph << RDF::Statement.new(dmp_creator_member_role, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member"))
+	graph << RDF::Statement.new(dmp_creator_member_role, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"), dmp_creator_member_organisation)
+	
+	#dmp_creator_member_organisation
+	graph << RDF::Statement.new(dmp_creator_member_organisation, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/SME-UNKNOWN") )
+	graph << RDF::Statement.new(dmp_creator_member_organisation, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Cottage Labs" )
+	
+	
+	#this-project
+	graph << RDF::Statement.new(this_project, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Endeavour") )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/dc/terms/title"), "UNKNOWN Title" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/dc/terms/abstract"), "UNKNOWN Abstract" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN Keyword1" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN Keyword2" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN Keyword3" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), principal_investigator_role )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), data_manager_role )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/hasStartDate"), "UNKNOWN StartDate" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/hasEndDate"), "UNKNOWN EndDate" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/holdsStatusInTime"), funding_status)
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/isFundedBy"), my_grant)
+	
+	#principal_investigator_role
+	graph << RDF::Statement.new(principal_investigator_role, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
+	graph << RDF::Statement.new(principal_investigator_role, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/principal-investigator") )
+	graph << RDF::Statement.new(principal_investigator_role, RDF::URI.new("http://purl.org/spar/pro/isHeldBy"),  principal_investigator)
+	
+	#principal_investigator
+	graph << RDF::Statement.new(principal_investigator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
+	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN David" )
+	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN Shotton" )
+	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"),  principal_investigator_role_in_time)
+	
+	#principal_investigator_role_in_time
+	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
+	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member") )
+	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_organisation1)
+	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_organisation2)
+	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_organisation3)
+	
+	#principal_investigator_role_in_time_organisation1
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation1, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Department of Zoology" )
+
+	#principal_investigator_role_in_time_organisation2
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation2, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Division") )
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation2, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN MPLS" )
+
+	#principal_investigator_role_in_time_organisation3
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation3, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/College") )
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation3, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Wolfson College" )
+
+	#data_manager_role
+	graph << RDF::Statement.new(data_manager_role, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
+	graph << RDF::Statement.new(data_manager_role, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/data-manager") )
+	graph << RDF::Statement.new(data_manager_role, RDF::URI.new("http://purl.org/spar/pro/isHeldBy"),  data_manager)
+
+	#data_manager
+	graph << RDF::Statement.new(data_manager, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
+	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN Graham" )
+	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN Klyne" )
+	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"),  data_manager_role_in_time)
+
+	#data_manager_role_in_time
+	graph << RDF::Statement.new(data_manager_role_in_time, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
+	graph << RDF::Statement.new(data_manager_role_in_time, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member") )
+	graph << RDF::Statement.new(data_manager_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  data_manager_role_in_time_organisation1)
+	
+	#data_manager_role_in_time_organisation1
+	graph << RDF::Statement.new(data_manager_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
+	graph << RDF::Statement.new(data_manager_role_in_time_organisation1, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Department of Zoology" )
+
+
+	#funding_status
+	graph << RDF::Statement.new(funding_status, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/StatusInTime") )
+	graph << RDF::Statement.new(funding_status, RDF::URI.new("http://purl.org/cerif/frapo/withStatus"), RDF::URI.new("http://purl.org/cerif/frapo/funded"))
+
+
+
+	#dmp_status
+	graph << RDF::Statement.new(dmp_status, RDF.type, RDF::URI.new("http://purl.org/spar/pso/StatusInTime") )
+	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://purl.org/spar/pso/withStatus"), RDF::URI.new("http://purl.org/spar/pso/Confidential") )
+	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://www.essepuntato.it/2012/04/tvc/atTime"), dmp_status_time )
+	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://purl.org/spar/pso/isAcquiredAsConsequenceOf"), confidentiality_justification)
+	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://purl.org/spar/pso/isLostAsConsequenceOf"), non_confidentiality_justification)
+
+	#dmp_status_time
+	graph << RDF::Statement.new(dmp_status_time, RDF.type, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#TimeInterval") )
+	graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalStartDate"), "FIX ME Start Date" )
+	graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalEndDate"), "FIX ME End Date" )
+
+		
+	#confidentiality-justification
+	graph << RDF::Statement.new(confidentiality_justification, RDF.type, RDF::URI.new('http://salt.semanticauthoring.org/ontologies/sro#Justification') )
+	graph << RDF::Statement.new(confidentiality_justification, RDF::URI.new("http://purl.org/dc/terms/description"), "FIX ME Grant Application Under review" )
+
+	#non-confidentiality-justification
+	graph << RDF::Statement.new(non_confidentiality_justification, RDF.type, RDF::URI.new('http://salt.semanticauthoring.org/ontologies/sro#Justification') )
+	graph << RDF::Statement.new(non_confidentiality_justification, RDF::URI.new("http://purl.org/dc/terms/description"), "FIX ME Grant Awarded" )
+	
+
+	
+	#my_grant
+	graph << RDF::Statement.new(my_grant, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Grant") )
+	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/relatesTo"), funding_programme)
+	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/relatesTo"), grant_application)
+	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/hasAwardDate"), "UNKNOWN Award Date")
+	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/hasGrantNumber"), "UNKNOWN Grant Number")
+	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/isAwardedBy"), funding_agency)
+	
+	#funding_programme
+	graph << RDF::Statement.new(funding_programme, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/FundingProgramme") )
+	graph << RDF::Statement.new(funding_programme, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Data driven biology" )
+
+	#grant_application
+	graph << RDF::Statement.new(grant_application, RDF.type, RDF::URI.new("http://purl.org/spar/fabio/GrantApplication") )
+	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/dc/terms/title"), "UNKNOWN Title" )
+	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/dc/terms/dateSubmitted"), "UNKNOWN date submitted" )
+	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/spar/fabio/hasDecisionDate"), "UNKNOWN date decision" )
+	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/cerif/frapo/holdsStatusInTime"),  application_status)
+	
+	#application_status
+	graph << RDF::Statement.new(application_status, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/StatusInTime") )
+	graph << RDF::Statement.new(application_status, RDF::URI.new("http://purl.org/cerif/frapo/withStatus"), RDF::URI.new("http://purl.org/cerif/frapo/accepted-UNKNOWN") ) #FIXME
+
+	#funding_agency
+	graph << RDF::Statement.new(funding_agency, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/FundingAgency") )
+	graph << RDF::Statement.new(funding_agency, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN BBSRC" )
+
+
 
  output = RDF::Turtle::Writer.buffer(:prefixes=>{
    nil => "http://example.com/ns#",
-
    :dcterms => "http://purl.org/dc/terms/",
    :fabio => "http://purl.org/spar/fabio/",
    :foaf => "http://xmlns.com/foaf/0.1/",
@@ -23,190 +199,8 @@ graph = RDF::Graph.load("tmp/example.ttl", :format => :ttl)
    :ti => "http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#",
    :tvc => "http://www.essepuntato.it/2012/04/tvc/",
    :xsd => "http://www.w3.org/2001/XMLSchema#"
-	}) do |writer|
-
-#  writer << RDF::Statement.new(:hello, RDF::DC.title, "Hello, world!", :context => RDF::URI("context"))
-#  writer << RDF::Statement.new(:boo, RDF::DC.title, "blobby!")
-#  writer << [:bla, RDF::DC.title, "flobby!"]
-
- #  writer << ["hello", RDF.type, "http://purl.org/spar/fabio/DataManagementPlan"]
-
-
-	g = RDF::Graph.new
-
-	my_dmp = RDF::Node.new("my-DMP")
-	dmp_creator = RDF::Node.new("DMP-creator")
-	dmp_creator_member_role = RDF::Node.new("DMP-creator-member-role")
-	dmp_creator_member_organisation = RDF::Node.new("DMP-creator-member-organisation")
-
-	this_project = RDF::Node.new("this-project")
-	principal_investigator_role = RDF::Node.new("principal-investigator-role")
-	principal_investigator = RDF::Node.new("principal-investigator")
-	principal_investigator
-	principal_investigator_role_in_time = RDF::Node.new("principal-investigator-role-in-time")
-	principal_investigator_role_in_time_department = RDF::Node.new("principal-investigator-role-in-time-department")
-	principal_investigator_role_in_time_division = RDF::Node.new("principal-investigator-role-in-time-division")
-	principal_investigator_role_in_time_college = RDF::Node.new("principal-investigator-role-in-time-college")
-	
-	data_manager_role = RDF::Node.new("data-manager-role")
-	data_manager = RDF::Node.new("data-manager")
-	
-	confidentiality_justification = RDF::Node.new("confidentiality-justification")
-	non_confidentiality_justification = RDF::Node.new("non-confidentiality-justification")
-
-	funding_status = RDF::Node.new("funding-status")
-	my_grant = RDF::Node.new("my-grant")
-	grant_application = RDF::Node.new("grant-application")
-	application_status = RDF::Node.new("application-status")
-	funding_agency = RDF::Node.new("funding-agency")
-
-	holds_status_in_time = RDF::Node.new("holdsStatusInTime")
-	at_time = RDF::Node.new("atTime")
-
-	funding_programme = RDF::Node.new("funding_programme")
-	
-	#my-DMP
-	g << RDF::Statement.new(my_dmp, RDF.type, RDF::URI.new("http://purl.org/spar/fabio/DataManagementPlan") )
-	g << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/title"), "FIXME Data management plan for the Ethodata Project" )
-	g << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/created"), "FIXME Created Date" )
-	g << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/creator"), dmp_creator )
-	g << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/refersTo"), this_project )
-	g << RDF::Statement.new(my_dmp, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/versionIdentifier"), "FIXME Version Number" )
-	g << RDF::Statement.new(my_dmp, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/doi"), "FIXME DOI" )
-	g << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/spar/pso/holdsStatusInTime"),  holds_status_in_time)
-	
-	#dmp_creator
-	g << RDF::Statement.new(dmp_creator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	g << RDF::Statement.new(dmp_creator, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "FIXME Richard" )
-	g << RDF::Statement.new(dmp_creator, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "FIXME Jones" )
-	g << RDF::Statement.new(dmp_creator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"), dmp_creator_member_role )
-	
-	#dmp_creator_member_role
-	g << RDF::Statement.new(dmp_creator_member_role, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
-	g << RDF::Statement.new(dmp_creator_member_role, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member"))
-	g << RDF::Statement.new(dmp_creator_member_role, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"), dmp_creator_member_organisation)
-	
-	#member_organisation
-	g << RDF::Statement.new(dmp_creator_member_organisation, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/SME") )
-	g << RDF::Statement.new(dmp_creator_member_organisation, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "FIXME Cottage Labs" )
-	
-	
-	#this-project
-	g << RDF::Statement.new(this_project, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Endeavour") )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/dc/terms/title"), "FIXME Title" )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/dc/terms/abstract"), "FIXME Abstract" )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "FIXME Keyword1" )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "FIXME Keyword2" )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "FIXME Keyword3" )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), principal_investigator_role )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), data_manager_role )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/hasStartDate"), "FIXME hasStartDate" )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/hasEndDate"), "FIXME hasEndDate" )
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/holdsStatusInTime"), funding_status)
-	g << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/isFundedBy"), my_grant)
-	
-	#principal_investigator_role
-	g << RDF::Statement.new(principal_investigator_role, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
-	g << RDF::Statement.new(principal_investigator_role, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/principal-investigator") )
-	g << RDF::Statement.new(principal_investigator_role, RDF::URI.new("http://purl.org/spar/pro/isHeldBy"),  principal_investigator)
-	
-	#principal_investigator
-	g << RDF::Statement.new(principal_investigator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	g << RDF::Statement.new(principal_investigator, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "FIXME David" )
-	g << RDF::Statement.new(principal_investigator, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "FIXME Shotton" )
-	g << RDF::Statement.new(principal_investigator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"),  principal_investigator_role_in_time)
-	
-	#principal_investigator_role_in_time
-	g << RDF::Statement.new(principal_investigator_role_in_time, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
-	g << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member") )
-	g << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_department)
-	g << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_division)
-	g << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_college)
-	
-	#principal_investigator_role_in_time_department
-	g << RDF::Statement.new(principal_investigator_role_in_time_department, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
-	g << RDF::Statement.new(principal_investigator_role_in_time_department, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "FIXME Department of Zoology" )
-
-	#principal_investigator_role_in_time_division
-	g << RDF::Statement.new(principal_investigator_role_in_time_division, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Division") )
-	g << RDF::Statement.new(principal_investigator_role_in_time_division, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "FIXME MPLS" )
-
-	#principal_investigator_role_in_time_college
-	g << RDF::Statement.new(principal_investigator_role_in_time_college, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/College") )
-	g << RDF::Statement.new(principal_investigator_role_in_time_college, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "FIXME Wolfson College" )
-		
-		
-		
-	#confidentiality-justification
-	g << RDF::Statement.new(confidentiality_justification, RDF.type, RDF::URI.new('http://salt.semanticauthoring.org/ontologies/sro#Justification') )
-	g << RDF::Statement.new(confidentiality_justification, RDF::URI.new("http://purl.org/dc/terms/description"), "FIX ME Grant Application Under review" )
-
-	#non-confidentiality-justification
-	g << RDF::Statement.new(non_confidentiality_justification, RDF.type, RDF::URI.new('http://salt.semanticauthoring.org/ontologies/sro#Justification') )
-	g << RDF::Statement.new(non_confidentiality_justification, RDF::URI.new("http://purl.org/dc/terms/description"), "FIX ME Grant Awarded" )
-	
-
-	
-	#my_grant
-	g << RDF::Statement.new(my_grant, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Grant") )
-	g << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/relatesTo"), funding_programme)
-	g << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/relatesTo"), grant_application)
-	g << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/hasAwardDate"), "FIXME Award Date")
-	g << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/hasGrantNumber"), "FIXME Grant Number")
-	g << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/isAwardedBy"), funding_agency)
-	
-	#funding_programme
-	g << RDF::Statement.new(funding_programme, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/FundingProgramme") )
-	g << RDF::Statement.new(funding_programme, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "FIXME Data driven biology" )
-
-	#grant_application
-	g << RDF::Statement.new(grant_application, RDF.type, RDF::URI.new("http://purl.org/spar/fabio/GrantApplication") )
-	g << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/dc/terms/title"), "FIXME Title" )
-	g << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/dc/terms/dateSubmitted"), "FIXME date submitted" )
-	g << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/spar/fabio/hasDecisionDate"), "FIXME date decision" )
-	g << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/cerif/frapo/holdsStatusInTime"),  application_status)
-	
-	#application_status
-	g << RDF::Statement.new(application_status, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/StatusInTime") )
-	g << RDF::Statement.new(application_status, RDF::URI.new("http://purl.org/cerif/frapo/withStatus"), RDF::URI.new("http://purl.org/cerif/frapo/accepted-FIXME") ) #FIXME
-
-	#funding_agency
-	g << RDF::Statement.new(funding_agency, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/FundingAgency") )
-	g << RDF::Statement.new(funding_agency, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "FIXME BBSRC" )
-
-	
-	#holdsStatusInTime
-	g << RDF::Statement.new(holds_status_in_time, RDF.type, RDF::URI.new("http://purl.org/spar/pso/StatusInTime") )
-	g << RDF::Statement.new(holds_status_in_time, RDF::URI.new("http://purl.org/spar/pso/withStatus"), RDF::URI.new("http://purl.org/spar/pso/Confidential") )
-	g << RDF::Statement.new(holds_status_in_time, RDF::URI.new("http://www.essepuntato.it/2012/04/tvc/atTime"), at_time )
-	g << RDF::Statement.new(holds_status_in_time, RDF::URI.new("http://purl.org/spar/pso/isAcquiredAsConsequenceOf"), confidentiality_justification)
-	g << RDF::Statement.new(holds_status_in_time, RDF::URI.new("http://purl.org/spar/pso/isLostAsConsequenceOf"), non_confidentiality_justification)
-	
-	#atTime
-	g << RDF::Statement.new(at_time, RDF.type, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#TimeInterval") )
-	g << RDF::Statement.new(at_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalStartDate"), "FIX ME Start Date" )
-	g << RDF::Statement.new(at_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalEndDate"), "FIX ME End Date" )
-	
-	writer << g
-	
-
-
-   graph.each_statement do |statement|
-    # writer << statement
-     puts "STATEMENT --------------"
-     puts statement
-	 puts statement.class
-	 puts statement.subject
-	 puts statement.subject.class
-	 puts statement.predicate
-	 puts statement.predicate.class
-	 puts statement.object
-	 puts statement.object.class
-
-#	 puts statement.methods.sort
-     break;
-   end
-
+   }) do |writer|
+   writer << graph
  end
 -%>
 <%= raw output %>
