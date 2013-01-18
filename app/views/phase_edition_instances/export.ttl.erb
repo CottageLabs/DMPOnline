@@ -1,4 +1,38 @@
 <%-
+	qs = export_questions(@pei, @doc[:selection], @doc[:include_conditional], @doc[:exclude_unanswered])
+	
+	@answers = {}
+	qs.each do |section|
+		section[:template_clauses].each do |template_clause|
+			template_clause[:answers].each do |answer|
+				if answer[:dmp_number].blank?
+					@answers["Q #{template_clause[:number]}"] = answer[:response]
+				else
+					@answers[answer[:dmp_number]] = answer[:response]
+					#@answers["clause " + answer[:dmp_number]] = answer[:dmp_clause]
+					#puts "#{answer[:dmp_number]}\t#{answer[:dmp_clause]}"
+				end
+
+			end
+		end
+	end
+	
+  def build_rdf_statement(graph, subject, predicate_uri, question_number)
+#	graph << RDF::Statement.new(subject, RDF::URI.new(predicate_uri), "#{question_number} => #{@answers["clause " + question_number]}")	
+#	return
+	
+    if @answers.include?(question_number)
+      if !@answers[question_number].nil?
+        graph << RDF::Statement.new(subject, RDF::URI.new(predicate_uri), @answers[question_number])
+      else
+        graph << RDF::Statement.new(subject, RDF::URI.new(predicate_uri), "NULL ANSWER: #{question_number}")
+      end
+    else
+      graph << RDF::Statement.new(subject, RDF::URI.new(predicate_uri), "MISSING QUESTION: #{question_number}")
+    end
+  end
+
+
 	graph = RDF::Graph.new
 
 	my_dmp = RDF::Node.new("my-DMP")
@@ -34,19 +68,20 @@
 	funding_programme = RDF::Node.new("funding_programme")
 	
 	#my-DMP
-	graph << RDF::Statement.new(my_dmp, RDF.type, RDF::URI.new("http://purl.org/spar/fabio/DataManagementPlan") )
-	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/title"), "UNKNOWN Data management plan for the Ethodata Project" )
-	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/created"), "UNKNOWN Created Date" )
+	graph << RDF::Statement.new(my_dmp, RDF.type, RDF::URI.new("http://purl.org/spar/fabio/DataManagementPlan"))
+	
+	build_rdf_statement(graph, my_dmp, "http://purl.org/dc/terms/title", "DCC 1.1.1")
+	build_rdf_statement(graph, my_dmp, "http://purl.org/dc/terms/created", "DCC 1.4.1")
 	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/creator"), dmp_creator )
 	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/refersTo"), this_project )
-	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/versionIdentifier"), "UNKNOWN Version Number" )
-	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/doi"), "UNKNOWN DOI" )
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/versionIdentifier"), "UNKNOWN - no equivalent DCC field")
+	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/doi"), "UNKNOWN - no equivalent DCC field")
 	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/spar/pso/holdsStatusInTime"),  dmp_status)
 	
 	#dmp_creator
 	graph << RDF::Statement.new(dmp_creator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN Richard" )
-	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN Jones" )
+	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN - no equivalent DCC field (perhaps use DMP user login variable?)" )
+	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN - no equivalent DCC field (perhaps use DMP user login variable?)" )
 	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"), dmp_creator_member_role )
 	
 	#dmp_creator_member_role
@@ -55,21 +90,21 @@
 	graph << RDF::Statement.new(dmp_creator_member_role, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"), dmp_creator_member_organisation)
 	
 	#dmp_creator_member_organisation
-	graph << RDF::Statement.new(dmp_creator_member_organisation, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/SME-UNKNOWN") )
-	graph << RDF::Statement.new(dmp_creator_member_organisation, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Cottage Labs" )
+	graph << RDF::Statement.new(dmp_creator_member_organisation, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/UNKNOWN") )
+	graph << RDF::Statement.new(dmp_creator_member_organisation, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN - no equivalent DCC field (perhaps use DMP template owner variable?)" )
 	
 	
 	#this-project
 	graph << RDF::Statement.new(this_project, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Endeavour") )
-	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/dc/terms/title"), "UNKNOWN Title" )
-	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/dc/terms/abstract"), "UNKNOWN Abstract" )
-	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN Keyword1" )
-	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN Keyword2" )
-	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN Keyword3" )
+	build_rdf_statement(graph, this_project, "http://purl.org/dc/terms/title", "DCC 1.1.1")
+	build_rdf_statement(graph, this_project, "http://purl.org/dc/terms/abstract", "DCC 1.2")
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN - no equivalent DCC field" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN - no equivalent DCC field" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://prismstandard.org/namespaces/basic/2.0/keyword"), "UNKNOWN - no equivalent DCC field" )
 	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), principal_investigator_role )
 	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), data_manager_role )
-	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/hasStartDate"), "UNKNOWN StartDate" )
-	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/hasEndDate"), "UNKNOWN EndDate" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/hasStartDate"), "UNKNOWN - no equivalent DCC field" )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/hasEndDate"), "UNKNOWN - no equivalent DCC field" )
 	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/holdsStatusInTime"), funding_status)
 	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/cerif/frapo/isFundedBy"), my_grant)
 	
@@ -80,8 +115,8 @@
 	
 	#principal_investigator
 	graph << RDF::Statement.new(principal_investigator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN David" )
-	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN Shotton" )
+	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN - no equivalent DCC field" )
+	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN - no equivalent DCC field" )
 	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"),  principal_investigator_role_in_time)
 	
 	#principal_investigator_role_in_time
@@ -93,15 +128,15 @@
 	
 	#principal_investigator_role_in_time_organisation1
 	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
-	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation1, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Department of Zoology" )
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation1, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN - no equivalent DCC field" )
 
 	#principal_investigator_role_in_time_organisation2
 	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation2, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Division") )
-	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation2, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN MPLS" )
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation2, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN - no equivalent DCC field" )
 
 	#principal_investigator_role_in_time_organisation3
 	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation3, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/College") )
-	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation3, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Wolfson College" )
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation3, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN - no equivalent DCC field" )
 
 	#data_manager_role
 	graph << RDF::Statement.new(data_manager_role, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
@@ -110,8 +145,9 @@
 
 	#data_manager
 	graph << RDF::Statement.new(data_manager, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN Graham" )
-	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN Klyne" )
+	build_rdf_statement(graph, data_manager, "http://xmlns.com/foaf/0.1/name", "DCC 10.1")
+	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://xmlns.com/foaf/0.1/givenName"), "UNKNOWN - no equivalent DCC field" )
+	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://xmlns.com/foaf/0.1/familyName"), "UNKNOWN - no equivalent DCC field" )
 	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"),  data_manager_role_in_time)
 
 	#data_manager_role_in_time
@@ -121,35 +157,35 @@
 	
 	#data_manager_role_in_time_organisation1
 	graph << RDF::Statement.new(data_manager_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
-	graph << RDF::Statement.new(data_manager_role_in_time_organisation1, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Department of Zoology" )
+	graph << RDF::Statement.new(data_manager_role_in_time_organisation1, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN - no equivalent DCC field" )
 
 
 	#funding_status
 	graph << RDF::Statement.new(funding_status, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/StatusInTime") )
-	graph << RDF::Statement.new(funding_status, RDF::URI.new("http://purl.org/cerif/frapo/withStatus"), RDF::URI.new("http://purl.org/cerif/frapo/funded"))
+	graph << RDF::Statement.new(funding_status, RDF::URI.new("http://purl.org/cerif/frapo/withStatus"), RDF::URI.new("http://purl.org/cerif/frapo/UNKNOWN"))
 
 
 
 	#dmp_status
 	graph << RDF::Statement.new(dmp_status, RDF.type, RDF::URI.new("http://purl.org/spar/pso/StatusInTime") )
-	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://purl.org/spar/pso/withStatus"), RDF::URI.new("http://purl.org/spar/pso/Confidential") )
+	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://purl.org/spar/pso/withStatus"), RDF::URI.new("http://purl.org/spar/pso/UNKNOWN") )
 	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://www.essepuntato.it/2012/04/tvc/atTime"), dmp_status_time )
 	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://purl.org/spar/pso/isAcquiredAsConsequenceOf"), confidentiality_justification)
 	graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://purl.org/spar/pso/isLostAsConsequenceOf"), non_confidentiality_justification)
 
 	#dmp_status_time
 	graph << RDF::Statement.new(dmp_status_time, RDF.type, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#TimeInterval") )
-	graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalStartDate"), "FIX ME Start Date" )
-	graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalEndDate"), "FIX ME End Date" )
+	graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalStartDate"), "UNKNOWN - no equivalent DCC field" )
+	graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalEndDate"), "UNKNOWN - no equivalent DCC field" )
 
 		
 	#confidentiality-justification
 	graph << RDF::Statement.new(confidentiality_justification, RDF.type, RDF::URI.new('http://salt.semanticauthoring.org/ontologies/sro#Justification') )
-	graph << RDF::Statement.new(confidentiality_justification, RDF::URI.new("http://purl.org/dc/terms/description"), "FIX ME Grant Application Under review" )
+	graph << RDF::Statement.new(confidentiality_justification, RDF::URI.new("http://purl.org/dc/terms/description"), "UNKNOWN - no equivalent DCC field" )
 
 	#non-confidentiality-justification
 	graph << RDF::Statement.new(non_confidentiality_justification, RDF.type, RDF::URI.new('http://salt.semanticauthoring.org/ontologies/sro#Justification') )
-	graph << RDF::Statement.new(non_confidentiality_justification, RDF::URI.new("http://purl.org/dc/terms/description"), "FIX ME Grant Awarded" )
+	graph << RDF::Statement.new(non_confidentiality_justification, RDF::URI.new("http://purl.org/dc/terms/description"), "UNKNOWN - no equivalent DCC field" )
 	
 
 	
@@ -157,28 +193,28 @@
 	graph << RDF::Statement.new(my_grant, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Grant") )
 	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/relatesTo"), funding_programme)
 	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/relatesTo"), grant_application)
-	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/hasAwardDate"), "UNKNOWN Award Date")
-	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/hasGrantNumber"), "UNKNOWN Grant Number")
+	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/hasAwardDate"), "UNKNOWN - no equivalent DCC field")
+	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/hasGrantNumber"), "UNKNOWN - no equivalent DCC field")
 	graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/cerif/frapo/isAwardedBy"), funding_agency)
 	
 	#funding_programme
 	graph << RDF::Statement.new(funding_programme, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/FundingProgramme") )
-	graph << RDF::Statement.new(funding_programme, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN Data driven biology" )
+	graph << RDF::Statement.new(funding_programme, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN - no equivalent DCC field" )
 
 	#grant_application
 	graph << RDF::Statement.new(grant_application, RDF.type, RDF::URI.new("http://purl.org/spar/fabio/GrantApplication") )
-	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/dc/terms/title"), "UNKNOWN Title" )
-	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/dc/terms/dateSubmitted"), "UNKNOWN date submitted" )
-	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/spar/fabio/hasDecisionDate"), "UNKNOWN date decision" )
+	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/dc/terms/title"), "UNKNOWN - no equivalent DCC field" )
+	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/dc/terms/dateSubmitted"), "UNKNOWN - no equivalent DCC field" )
+	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/spar/fabio/hasDecisionDate"), "UNKNOWN - no equivalent DCC field" )
 	graph << RDF::Statement.new(grant_application, RDF::URI.new("http://purl.org/cerif/frapo/holdsStatusInTime"),  application_status)
 	
 	#application_status
 	graph << RDF::Statement.new(application_status, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/StatusInTime") )
-	graph << RDF::Statement.new(application_status, RDF::URI.new("http://purl.org/cerif/frapo/withStatus"), RDF::URI.new("http://purl.org/cerif/frapo/accepted-UNKNOWN") ) #FIXME
+	graph << RDF::Statement.new(application_status, RDF::URI.new("http://purl.org/cerif/frapo/withStatus"), RDF::URI.new("http://purl.org/cerif/frapo/UNKNOWN") ) #FIXME
 
 	#funding_agency
 	graph << RDF::Statement.new(funding_agency, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/FundingAgency") )
-	graph << RDF::Statement.new(funding_agency, RDF::URI.new("http://xmlns.com/foaf/0.1/name"), "UNKNOWN BBSRC" )
+	build_rdf_statement(graph, funding_agency, "http://xmlns.com/foaf/0.1/name", "DCC 1.1.2")
 
 
 
