@@ -74,3 +74,4 @@ gem 'sword2ruby', '1.0.0'
 gem "attr_encrypted", '1.2.1'
 gem "rdf", "0.3.11.1"
 gem "rdf-turtle", "~> 0.3.2"
+gem "thin"
