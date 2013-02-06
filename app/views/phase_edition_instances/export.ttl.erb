@@ -53,11 +53,15 @@
 
 
 	my_dmp = RDF::Node.new("my-DMP")
-	dmp_creator = RDF::Node.new("DMP-creator")
-	dmp_creator_member_role = RDF::Node.new("DMP-creator-member-role")
-	dmp_creator_member_organisation = RDF::Node.new("DMP-creator-member-organisation")
-
 	this_project = RDF::Node.new("this-project")
+
+	dmp_creator_role = RDF::Node.new("dmp-creator-role")
+	dmp_creator = RDF::Node.new("dmp-creator")
+	dmp_creator_role_in_time = RDF::Node.new("dmp-creator-role-in-time")
+	dmp_creator_role_in_time_organisation1 = RDF::Node.new("dmp-creator-role-in-time-organisation1")
+	dmp_creator_role_in_time_organisation2 = RDF::Node.new("dmp-creator-role-in-time-organisation2")
+	dmp_creator_role_in_time_organisation3 = RDF::Node.new("dmp-creator-role-in-time-organisation3")
+
 	principal_investigator_role = RDF::Node.new("principal-investigator-role")
 	principal_investigator = RDF::Node.new("principal-investigator")
 	principal_investigator_role_in_time = RDF::Node.new("principal-investigator-role-in-time")
@@ -69,13 +73,17 @@
 	data_manager = RDF::Node.new("data-manager")
 	data_manager_role_in_time = RDF::Node.new("data-manager-role-in-time")
 	data_manager_role_in_time_organisation1 = RDF::Node.new("data-manager-role-in-time-organisation1")
+	data_manager_role_in_time_organisation2 = RDF::Node.new("data-manager-role-in-time-organisation2")
+	data_manager_role_in_time_organisation3 = RDF::Node.new("data-manager-role-in-time-organisation3")
 	
 	data_creator_role = RDF::Node.new("data-creator-role")
 	data_creator = RDF::Node.new("data-creator")
 	data_creator_role_in_time = RDF::Node.new("data-creator-role-in-time")
 	data_creator_role_in_time_organisation1 = RDF::Node.new("data-creator-role-in-time-organisation1")
-	
-	
+	data_creator_role_in_time_organisation2 = RDF::Node.new("data-creator-role-in-time-organisation2")	
+	data_creator_role_in_time_organisation3 = RDF::Node.new("data-creator-role-in-time-organisation3")
+
+
 	dmp_status = RDF::Node.new("dmp-status")
 	dmp_status_time = RDF::Node.new("dmp-status-time")
 		
@@ -106,17 +114,24 @@
 	#dmp_creator
 	graph << RDF::Statement.new(my_dmp, RDF::URI.new("http://purl.org/dc/terms/creator"), dmp_creator )
 	graph << RDF::Statement.new(dmp_creator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	build_rdf_statement(graph, dmp_creator, "http://xmlns.com/foaf/0.1/name", "Q 2.1")
-	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"), dmp_creator_member_role )
+	build_rdf_statement(graph, dmp_creator, "http://xmlns.com/foaf/0.1/givenName", "Q 2.1.1")
+	build_rdf_statement(graph, dmp_creator, "http://xmlns.com/foaf/0.1/familyName", "Q 2.1.2")
+	graph << RDF::Statement.new(dmp_creator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"), dmp_creator_role_in_time )
 	
-	#dmp_creator_member_role
-	graph << RDF::Statement.new(dmp_creator_member_role, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
-	graph << RDF::Statement.new(dmp_creator_member_role, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member"))
-	graph << RDF::Statement.new(dmp_creator_member_role, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"), dmp_creator_member_organisation)
-	
-	#dmp_creator_member_organisation
-	graph << RDF::Statement.new(dmp_creator_member_organisation, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/UNKNOWN") )
-	build_rdf_statement(graph, dmp_creator_member_organisation, "http://xmlns.com/foaf/0.1/name", "Q 2.2")
+	#dmp_creator_role_in_time
+	graph << RDF::Statement.new(dmp_creator_role_in_time, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
+	graph << RDF::Statement.new(dmp_creator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member"))
+	graph << RDF::Statement.new(dmp_creator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"), dmp_creator_role_in_time_organisation1)
+	graph << RDF::Statement.new(dmp_creator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"), dmp_creator_role_in_time_organisation2)
+	graph << RDF::Statement.new(dmp_creator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"), dmp_creator_role_in_time_organisation3)
+
+	#dmp_creator_role_in_time_organisation[1,2,3]
+	graph << RDF::Statement.new(dmp_creator_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
+	build_rdf_statement(graph, dmp_creator_role_in_time_organisation1, "http://xmlns.com/foaf/0.1/name", "Q 2.2.1")
+	graph << RDF::Statement.new(dmp_creator_role_in_time_organisation2, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Division") )
+	build_rdf_statement(graph, dmp_creator_role_in_time_organisation2, "http://xmlns.com/foaf/0.1/name", "Q 2.2.2")
+	graph << RDF::Statement.new(dmp_creator_role_in_time_organisation3, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/College") )
+	build_rdf_statement(graph, dmp_creator_role_in_time_organisation3, "http://xmlns.com/foaf/0.1/name", "Q 2.2.3")
 	
 	#this-project
 	graph << RDF::Statement.new(this_project, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Endeavour") )
@@ -140,17 +155,24 @@
 	
 	#principal_investigator
 	graph << RDF::Statement.new(principal_investigator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	build_rdf_statement(graph, principal_investigator, "http://xmlns.com/foaf/0.1/name", "Q 2.3")
+	build_rdf_statement(graph, principal_investigator, "http://xmlns.com/foaf/0.1/givenName", "Q 2.3.1")
+	build_rdf_statement(graph, principal_investigator, "http://xmlns.com/foaf/0.1/familyName", "Q 2.3.2")
 	graph << RDF::Statement.new(principal_investigator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"),  principal_investigator_role_in_time)
 	
 	#principal_investigator_role_in_time
 	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
 	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member") )
 	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_organisation1)
+	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_organisation2)
+	graph << RDF::Statement.new(principal_investigator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  principal_investigator_role_in_time_organisation3)
 	
-	#principal_investigator_role_in_time_organisation1
-	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/UNKNOWN") )
-	build_rdf_statement(graph, principal_investigator_role_in_time_organisation1, "http://xmlns.com/foaf/0.1/name", "Q 2.4")
+	#principal_investigator_role_in_time_organisation[1,2,3]
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
+	build_rdf_statement(graph, principal_investigator_role_in_time_organisation1, "http://xmlns.com/foaf/0.1/name", "Q 2.4.1")
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation2, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Division") )
+	build_rdf_statement(graph, principal_investigator_role_in_time_organisation2, "http://xmlns.com/foaf/0.1/name", "Q 2.4.2")
+	graph << RDF::Statement.new(principal_investigator_role_in_time_organisation3, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/College") )
+	build_rdf_statement(graph, principal_investigator_role_in_time_organisation3, "http://xmlns.com/foaf/0.1/name", "Q 2.4.3")
 
 
 	#data_manager_role
@@ -160,18 +182,24 @@
 
 	#data_manager
 	graph << RDF::Statement.new(data_manager, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	build_rdf_statement(graph, data_manager, "http://xmlns.com/foaf/0.1/name", "Q 2.5") #DCC 10.1
+	build_rdf_statement(graph, data_manager, "http://xmlns.com/foaf/0.1/givenName", "Q 2.5.1") #DCC 10.1
+	build_rdf_statement(graph, data_manager, "http://xmlns.com/foaf/0.1/familyName", "Q 2.5.2")
 	graph << RDF::Statement.new(data_manager, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"),  data_manager_role_in_time)
 
 	#data_manager_role_in_time
 	graph << RDF::Statement.new(data_manager_role_in_time, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
 	graph << RDF::Statement.new(data_manager_role_in_time, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member") )
 	graph << RDF::Statement.new(data_manager_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  data_manager_role_in_time_organisation1)
+	graph << RDF::Statement.new(data_manager_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  data_manager_role_in_time_organisation2)
+	graph << RDF::Statement.new(data_manager_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  data_manager_role_in_time_organisation3)
 	
 	#data_manager_role_in_time_organisation1
-	graph << RDF::Statement.new(data_manager_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/UNKNOWN") )
-	build_rdf_statement(graph, data_manager_role_in_time_organisation1, "http://xmlns.com/foaf/0.1/name", "Q 2.6")
-
+	graph << RDF::Statement.new(data_manager_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
+	build_rdf_statement(graph, data_manager_role_in_time_organisation1, "http://xmlns.com/foaf/0.1/name", "Q 2.6.1")
+	graph << RDF::Statement.new(data_manager_role_in_time_organisation2, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Division") )
+	build_rdf_statement(graph, data_manager_role_in_time_organisation2, "http://xmlns.com/foaf/0.1/name", "Q 2.6.2")
+	graph << RDF::Statement.new(data_manager_role_in_time_organisation3, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/College") )
+	build_rdf_statement(graph, data_manager_role_in_time_organisation3, "http://xmlns.com/foaf/0.1/name", "Q 2.6.3")
 
 	#data_creator_role
 	graph << RDF::Statement.new(data_creator_role, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
@@ -180,17 +208,24 @@
 
 	#data_creator
 	graph << RDF::Statement.new(data_creator, RDF.type, RDF::URI.new("http://xmlns.com/foaf/0.1/Person") )
-	build_rdf_statement(graph, data_creator, "http://xmlns.com/foaf/0.1/name", "Q 2.7")
+	build_rdf_statement(graph, data_creator, "http://xmlns.com/foaf/0.1/givenName", "Q 2.7.1")
+	build_rdf_statement(graph, data_creator, "http://xmlns.com/foaf/0.1/familyName", "Q 2.7.2")
 	graph << RDF::Statement.new(data_creator, RDF::URI.new("http://purl.org/spar/pro/holdsRoleInTime"),  data_creator_role_in_time)
 
 	#data_creator_role_in_time
 	graph << RDF::Statement.new(data_creator_role_in_time, RDF.type, RDF::URI.new("http://purl.org/spar/pro/RoleInTime") )
 	graph << RDF::Statement.new(data_creator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/withRole"), RDF::URI.new("http://purl.org/spar/scoro/member") )
 	graph << RDF::Statement.new(data_creator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  data_creator_role_in_time_organisation1)
-	
+	graph << RDF::Statement.new(data_creator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  data_creator_role_in_time_organisation2)
+	graph << RDF::Statement.new(data_creator_role_in_time, RDF::URI.new("http://purl.org/spar/pro/relatesToOrganization"),  data_creator_role_in_time_organisation3)
+
 	#data_creator_role_in_time_organisation1
-	graph << RDF::Statement.new(data_creator_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/UNKNOWN") )
-	build_rdf_statement(graph, data_creator_role_in_time_organisation1, "http://xmlns.com/foaf/0.1/name", "Q 2.8")
+	graph << RDF::Statement.new(data_creator_role_in_time_organisation1, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Department") )
+	build_rdf_statement(graph, data_creator_role_in_time_organisation1, "http://xmlns.com/foaf/0.1/name", "Q 2.8.1")
+	graph << RDF::Statement.new(data_creator_role_in_time_organisation2, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Division") )
+	build_rdf_statement(graph, data_creator_role_in_time_organisation2, "http://xmlns.com/foaf/0.1/name", "Q 2.8.2")
+	graph << RDF::Statement.new(data_creator_role_in_time_organisation3, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/College") )
+	build_rdf_statement(graph, data_creator_role_in_time_organisation3, "http://xmlns.com/foaf/0.1/name", "Q 2.8.3")
 
 
 
