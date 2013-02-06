@@ -4,6 +4,7 @@
 	@answers = {}
 	qs.each do |section|
 		section[:template_clauses].each do |template_clause|
+			#puts template_clause
 			template_clause[:answers].each do |answer|
 				if answer[:dmp_number].blank?
 					@answers["Q #{template_clause[:number]}"] = answer[:response]
@@ -16,7 +17,7 @@
 			end
 		end
 	end
-	
+		
   def build_rdf_statement(graph, subject, predicate_uri, question_number)
     if @answers.include?(question_number)
       if !@answers[question_number].nil?
@@ -48,6 +49,8 @@
 
 
 	graph = RDF::Graph.new
+	
+
 
 	my_dmp = RDF::Node.new("my-DMP")
 	dmp_creator = RDF::Node.new("DMP-creator")
@@ -123,6 +126,7 @@
 	
 	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), principal_investigator_role )
 	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), data_manager_role )
+	graph << RDF::Statement.new(this_project, RDF::URI.new("http://purl.org/spar/pro/isRelatedToRoleInTime"), data_creator_role )
 	build_rdf_statement(graph, this_project, "http://purl.org/dqm-vocabulary/v1/dqm#hasURI", "Q 3.4")
 	build_rdf_statement(graph, this_project, "http://purl.org/cerif/frapo/hasStartDate", "Q 3.5")
 	build_rdf_statement(graph, this_project, "http://purl.org/cerif/frapo/hasEndDate", "Q 3.6")
@@ -193,17 +197,17 @@
 	#dmp_status
 	graph << RDF::Statement.new(dmp_status, RDF.type, RDF::URI.new("http://purl.org/spar/pso/StatusInTime") )
 	
-	build_conditional_rdf_statement(graph, dmp_status, "http://purl.org/spar/pso/withStatus", "http://purl.org/spar/pso/confidential", "Q 1.4", "1")
-	build_conditional_rdf_statement(graph, dmp_status, "http://purl.org/spar/pso/withStatus", "http://purl.org/spar/pso/non-confidential", "Q 1.4", "0")
+	build_conditional_rdf_statement(graph, dmp_status, "http://purl.org/spar/pso/withStatus", "http://purl.org/spar/pso/confidential", "Q 1.4", "Yes")
+	build_conditional_rdf_statement(graph, dmp_status, "http://purl.org/spar/pso/withStatus", "http://purl.org/spar/pso/non-confidential", "Q 1.4", "No")
 
-	if check_answer_value("Q 1.4", "1")
+	if check_answer_value("Q 1.4", "Yes")
 		graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://www.essepuntato.it/2012/04/tvc/atTime"), dmp_status_time )
 		graph << RDF::Statement.new(dmp_status, RDF::URI.new("http://purl.org/spar/pso/isAcquiredAsConsequenceOf"), confidentiality_justification)
 
 		#dmp_status_time
 		graph << RDF::Statement.new(dmp_status_time, RDF.type, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#TimeInterval") )
-		graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalStartDate"), "UNKNOWN - no equivalent DCC field" )
-		graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalEndDate"), "UNKNOWN - no equivalent DCC field" )
+		#graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalStartDate"), "UNKNOWN - no equivalent DCC field" )
+		#graph << RDF::Statement.new(dmp_status_time, RDF::URI.new("http://www.ontologydesignpatterns.org/cp/owl/timeinterval.owl#hasIntervalEndDate"), "UNKNOWN - no equivalent DCC field" )
 
 		
 		#confidentiality-justification
@@ -213,10 +217,10 @@
 
 	#funding_status
 	graph << RDF::Statement.new(funding_status, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/StatusInTime") )
-	build_conditional_rdf_statement(graph, funding_status, "http://purl.org/cerif/frapo/withStatus", "http://purl.org/cerif/frapo/funded", "Q 4.1", "1")
-	build_conditional_rdf_statement(graph, funding_status, "http://purl.org/cerif/frapo/withStatus", "http://purl.org/cerif/frapo/unfunded", "Q 4.1", "0")
+	build_conditional_rdf_statement(graph, funding_status, "http://purl.org/cerif/frapo/withStatus", "http://purl.org/cerif/frapo/funded", "Q 4.1", "Yes")
+	build_conditional_rdf_statement(graph, funding_status, "http://purl.org/cerif/frapo/withStatus", "http://purl.org/cerif/frapo/unfunded", "Q 4.1", "No")
 
-	if check_answer_value("Q 4.1", "1")	
+	if check_answer_value("Q 4.1", "Yes")	
 		#my_grant
 		graph << RDF::Statement.new(my_grant, RDF.type, RDF::URI.new("http://purl.org/cerif/frapo/Grant") )
 		graph << RDF::Statement.new(my_grant, RDF::URI.new("http://purl.org/swan/2.0/discourse-relationships/relatesTo"), funding_programme)
