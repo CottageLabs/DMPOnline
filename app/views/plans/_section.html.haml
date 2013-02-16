@@ -8,7 +8,12 @@
       - oid = q.has_answer? ? "question_row_#{q.id}" : nil
       %div{id: oid, class: "question #{question_type_css(q.kind)} #{q.is_column? ? 'column' : ''}"}
         %span.number= q.number_display
-        %span.text= sanitize q.question
+        %span.text{style:"width:inherit;"}= sanitize q.question
+        - if q.guide.try(:guidance).present?
+          - gref = dom_id(q.guide)
+          - gref_extra = dom_id(q.guide) + "_extra"
+          %span{id: gref_extra, class: "guidance popup", style:"margin-left:5px; vertical-align: bottom"}
+            = link_to image_tag('i.png', alt: t('dmp.guidance_available')), "#anchor-#{gref}", class: 'guidance-button', data: {guide: gref}
 
         - if q.guide.try(:guidance).present? && !q.has_answer?
           .guidance-area.heading
