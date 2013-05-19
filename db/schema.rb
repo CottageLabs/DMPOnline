@@ -14,11 +14,11 @@
 ActiveRecord::Schema.define(:version => 20121206093000) do
 
   create_table "active_admin_comments", :force => true do |t|
-    t.integer  "resource_id",                       :null => false
-    t.string   "resource_type",                     :null => false
+    t.integer  "resource_id",   :null => false
+    t.string   "resource_type", :null => false
     t.integer  "author_id"
     t.string   "author_type"
-    t.text     "body",          :limit => 16777215
+    t.text     "body"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "namespace"
@@ -32,13 +32,13 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
     t.integer  "phase_edition_instance_id"
     t.integer  "question_id"
     t.integer  "dcc_question_id"
-    t.text     "answer",                    :limit => 16777215
-    t.boolean  "answered",                                      :default => false
-    t.boolean  "hidden",                                        :default => false
+    t.text     "answer"
+    t.boolean  "answered",                  :default => false
+    t.boolean  "hidden",                    :default => false
     t.integer  "position"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "not_used",                                      :default => false
+    t.boolean  "not_used",                  :default => false
   end
 
   add_index "answers", ["phase_edition_instance_id"], :name => "index_answers_on_phase_edition_instance_id"
@@ -47,7 +47,7 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
   create_table "boilerplate_texts", :force => true do |t|
     t.integer  "boilerplate_id"
     t.string   "boilerplate_type"
-    t.text     "content",          :limit => 16777215
+    t.text     "content"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -65,19 +65,19 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
   create_table "documents", :force => true do |t|
     t.string   "name"
     t.string   "edition"
-    t.text     "description",             :limit => 16777215
+    t.text     "description"
     t.string   "attachment_file_name"
     t.string   "attachment_content_type"
     t.integer  "attachment_file_size"
     t.datetime "attachment_updated_at"
-    t.boolean  "visible",                                     :default => true
-    t.integer  "position",                                    :default => 0
+    t.boolean  "visible",                 :default => true
+    t.integer  "position",                :default => 0
     t.string   "icon_file_name"
     t.string   "icon_content_type"
     t.integer  "icon_file_size"
     t.datetime "icon_updated_at"
     t.integer  "organisation_id"
-    t.string   "locale",                                      :default => "en"
+    t.string   "locale",                  :default => "en"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -100,7 +100,7 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
   create_table "guides", :force => true do |t|
     t.integer  "guidance_id"
     t.string   "guidance_type"
-    t.text     "guidance",      :limit => 16777215
+    t.text     "guidance"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -152,8 +152,8 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
     t.string   "wayfless_entity"
     t.string   "banner_file_name"
     t.string   "banner_content_type"
-    t.string   "banner_file_size"
-    t.string   "banner_updated_at"
+    t.integer  "banner_file_size"
+    t.datetime "banner_updated_at"
     t.string   "media_logo_file_name"
     t.string   "media_logo_content_type"
     t.integer  "media_logo_file_size"
@@ -165,13 +165,13 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
 
   create_table "pages", :force => true do |t|
     t.string   "title"
-    t.text     "body",            :limit => 16777215
+    t.text     "body"
     t.string   "slug"
-    t.integer  "menu",                                :default => 0,    :null => false
-    t.integer  "position",                            :default => 0,    :null => false
+    t.integer  "menu",            :default => 0,    :null => false
+    t.integer  "position",        :default => 0,    :null => false
     t.string   "target_url"
-    t.integer  "organisation_id",                                       :null => false
-    t.string   "locale",                              :default => "en"
+    t.integer  "organisation_id",                   :null => false
+    t.string   "locale",          :default => "en"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -224,10 +224,10 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
 
   create_table "posts", :force => true do |t|
     t.string   "title"
-    t.text     "body",            :limit => 16777215
+    t.text     "body"
     t.integer  "user_id"
     t.integer  "organisation_id"
-    t.string   "locale",                              :default => "en"
+    t.string   "locale",          :default => "en"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -238,8 +238,8 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
     t.integer  "edition_id"
     t.string   "kind",                   :limit => 1
     t.string   "number_style",           :limit => 1
-    t.text     "question",               :limit => 16777215
-    t.text     "default_value",          :limit => 16777215
+    t.text     "question"
+    t.text     "default_value"
     t.integer  "dependency_question_id"
     t.string   "dependency_value"
     t.datetime "created_at"
@@ -333,9 +333,9 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
     t.integer  "organisation_id"
     t.string   "name"
     t.string   "url"
-    t.text     "description",      :limit => 16777215
+    t.text     "description"
     t.integer  "constraint_limit"
-    t.boolean  "checklist",                            :default => false
+    t.boolean  "checklist",        :default => false
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "constraint_text"
@@ -389,11 +389,11 @@ ActiveRecord::Schema.define(:version => 20121206093000) do
   add_index "users", ["shibboleth_id"], :name => "index_users_on_shibboleth_id"
 
   create_table "versions", :force => true do |t|
-    t.string   "item_type",                          :null => false
-    t.integer  "item_id",                            :null => false
-    t.string   "event",                              :null => false
+    t.string   "item_type",      :null => false
+    t.integer  "item_id",        :null => false
+    t.string   "event",          :null => false
     t.string   "whodunnit"
-    t.text     "object",         :limit => 16777215
+    t.text     "object"
     t.datetime "created_at"
     t.text     "object_changes"
   end
