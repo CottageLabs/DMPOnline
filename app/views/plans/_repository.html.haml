@@ -4,7 +4,7 @@
 .repository
   = f.inputs do
     - unless rep_list.empty?
-      = f.input :repository, as: :select, collection: rep_list
+      = f.input :repository, :label=>"DMP Repository", :as=>:select, :collection => rep_list
   
       #repository_username_area{data: {obo_list: obo_list.to_json}}
         = f.inputs for: :repository_username do |r|

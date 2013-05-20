@@ -9,6 +9,7 @@
       .form_text= t('dmp.following_optional')
       = f.input :currency
       = f.input :budget, input_html: {value: number_with_precision(@plan.budget, precision: 2)}
+      %div.notice{:style=>"text-align:right; font-style:italic;"}= "(enter value in whole units without punctuation)"
       = f.input :start_date
       = f.input :end_date
       = f.input :lead_org

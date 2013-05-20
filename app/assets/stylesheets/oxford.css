@@ -27,3 +27,9 @@ body{background-color:#fff;color:#333;font-family:verdana,arial,helvetica,sans-s
 #header #utility_nav a, #header #utility_nav a:link, #header #utility_nav a:visited {
     color: #E0DEE3;
 }
+
+
+/*make text boxes smaller */
+td.input-area textarea.wysiwyg_opt {
+    height: 30px !important;
+}

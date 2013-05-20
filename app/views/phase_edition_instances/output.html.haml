@@ -48,7 +48,7 @@
               %tr
                 %td= check_box_tag "doc[page_header]", 1, true
                 %th= t('dmp.page_header')
-                %td= text_field_tag "doc[page_header_text]", t('dmp.default_page_header')
+                %td= text_field_tag "doc[page_header_text]", @plan.project || t('dmp.default_page_header')
               %tr
                 %td= check_box_tag "doc[page_footer]", 1, true
                 %th= t('dmp.page_footer')
