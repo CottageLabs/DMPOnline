@@ -212,7 +212,13 @@ class PhaseEditionInstancesController < ApplicationController
   end
 
 
+
   private
+  
+  def filter_quotes(value)
+    value.gsub(/\"/,"\\\"")
+  end
+  
   
   # Requires @doc to be populated!
   def export_rendering(format)
@@ -237,8 +243,8 @@ class PhaseEditionInstancesController < ApplicationController
           margin: {:top => '1.7cm'},
           orientation: @doc[:orientation], 
           default_header: false,
-          header: {right: '[page]/[topage]', left: @doc[:page_header_text], spacing: 3, line: true},
-          footer: {center: @doc[:page_footer_text], spacing: 1.2, line: true}       
+          header: {right: '[page]/[topage]', left: filter_quotes(@doc[:page_header_text]), spacing: 3, line: true},
+          footer: {center: filter_quotes(@doc[:page_footer_text]), spacing: 1.2, line: true}       
 
     # Special cases for xlsx and docx where a send_file is used rather than response_body
     when :xlsx
